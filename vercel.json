@@ -1,7 +1,6 @@
 {
   "version": 2,
   "name": "medical-city-3d",
-  "public": true,
   "cleanUrls": true,
   "headers": [
     {
