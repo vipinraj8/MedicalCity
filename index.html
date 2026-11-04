@@ -1,0 +1,3970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Medical City 3D - Hospital Simulation (Night Shift)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #050a14;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #f1f5f9;
+    }
+    #game-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10;
+      box-shadow: 0 0 5px rgba(0,0,0,0.6);
+    }
+
+    /* Top HUD Panel */
+    #hud-top {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .hud-panel {
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: #f8fafc;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
+      pointer-events: auto;
+    }
+    .hospital-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 5px;
+    }
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+      align-items: center;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-val {
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+    .badge-role {
+      background: #0284c7;
+      color: #fff;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .badge-revenue {
+      background: #065f46;
+      border: 1px solid #10b981;
+      color: #a7f3d0;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .badge-cured {
+      background: #0369a1;
+      color: #e0f2fe;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .badge-lost {
+      background: #881337;
+      color: #ffe4e6;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .badge-trust {
+      background: #854d0e;
+      color: #fef08a;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    #mission-hud {
+      margin-top: 8px;
+      max-width: 320px;
+      font-size: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 6px;
+    }
+    .mission-header {
+      color: #fbbf24;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    .mission-text {
+      color: #e2e8f0;
+      line-height: 1.35;
+      margin-top: 2px;
+    }
+
+    /* Action Buttons */
+    #quick-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .btn-icon {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid #475569;
+      color: #f1f5f9;
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      pointer-events: auto;
+    }
+    .btn-icon:hover {
+      background: #0284c7;
+      border-color: #38bdf8;
+    }
+
+    /* Minimap Radar */
+    #minimap-wrapper {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      background: rgba(15, 23, 42, 0.94);
+      border: 2px solid #0284c7;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    #minimap-canvas {
+      width: 100%;
+      height: 100%;
+    }
+    .minimap-btn-hint {
+      position: absolute;
+      bottom: 4px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 9px;
+      color: #7dd3fc;
+      font-weight: 700;
+      text-shadow: 0 1px 2px #000;
+      pointer-events: none;
+    }
+
+    /* Notification Banner */
+    #notification-banner {
+      position: absolute;
+      top: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(2, 132, 199, 0.95);
+      color: #ffffff;
+      padding: 9px 22px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+      z-index: 30;
+      pointer-events: none;
+      animation: bannerSlide 0.25s ease-out;
+    }
+    @keyframes bannerSlide {
+      from { opacity: 0; transform: translate(-50%, -10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* Proximity Interaction Prompt */
+    #interact-prompt {
+      position: absolute;
+      bottom: 95px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.95);
+      border: 2px solid #38bdf8;
+      border-radius: 28px;
+      padding: 10px 24px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 8px 24px rgba(2, 132, 199, 0.45);
+      z-index: 25;
+      animation: pulsePrompt 1.8s infinite ease-in-out;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    .key-badge {
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: 900;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    @keyframes pulsePrompt {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.04); }
+    }
+
+    /* Mobile Controls */
+    #mobile-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      pointer-events: none;
+      z-index: 30;
+      display: none;
+    }
+    #joystick-zone {
+      position: absolute;
+      bottom: 25px;
+      left: 25px;
+      width: 120px;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-radius: 50%;
+      pointer-events: auto;
+      touch-action: none;
+    }
+    #joystick-knob {
+      position: absolute;
+      top: 35px;
+      left: 35px;
+      width: 50px;
+      height: 50px;
+      background: rgba(56, 189, 248, 0.88);
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+    #mobile-actions {
+      position: absolute;
+      bottom: 25px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-end;
+      pointer-events: auto;
+    }
+    .mobile-btn {
+      width: 58px;
+      height: 58px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 2px solid #38bdf8;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      touch-action: none;
+    }
+    .mobile-btn:active {
+      background: #0284c7;
+      transform: scale(0.92);
+    }
+
+    /* Modals & Screens */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 15, 29, 0.84);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid #38bdf8;
+      border-radius: 14px;
+      width: 95%;
+      max-width: 740px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75);
+      color: #e2e8f0;
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 14px 20px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 26px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover {
+      color: #f8fafc;
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .modal-footer {
+      padding: 12px 20px;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .dept-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .dept-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .dept-stat {
+      background: #0f172a;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border-left: 3px solid #38bdf8;
+    }
+    .dept-stat-label {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .dept-stat-val {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .case-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      background: #0369a1;
+      color: #e0f2fe;
+      margin-bottom: 6px;
+    }
+    .case-item-btn {
+      width: 100%;
+      text-align: left;
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 12px 14px;
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-size: 13px;
+      cursor: pointer;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.15s;
+    }
+    .case-item-btn:hover {
+      border-color: #38bdf8;
+      background: #253349;
+    }
+    .quiz-option {
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 8px 0;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+    .quiz-option:hover {
+      background: #334155;
+      border-color: #38bdf8;
+    }
+    .quiz-option.correct {
+      background: #065f46;
+      border-color: #34d399;
+      color: #ecfdf5;
+    }
+    .quiz-option.incorrect {
+      background: #881337;
+      border-color: #f43f5e;
+      color: #fff1f2;
+    }
+
+    .strike-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #0f172a;
+      border: 1px solid #ef4444;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fca5a5;
+    }
+
+    #xray-canvas {
+      width: 100%;
+      max-height: 250px;
+      background: #000;
+      border-radius: 8px;
+      border: 2px solid #334155;
+      display: block;
+      margin: 8px 0;
+    }
+    #icu-monitor-canvas {
+      width: 100%;
+      height: 180px;
+      background: #020617;
+      border: 2px solid #059669;
+      border-radius: 8px;
+      display: block;
+      margin: 8px 0;
+    }
+    #microscope-canvas {
+      width: 100%;
+      max-height: 240px;
+      background: #1e1e24;
+      border-radius: 8px;
+      border: 2px solid #38bdf8;
+      display: block;
+      margin: 8px 0;
+    }
+
+    .map-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .map-tab-btn {
+      flex: 1;
+      padding: 8px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #f8fafc;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+    .map-tab-btn.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+    }
+    #campus-map-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .map-dept-chip {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .map-dept-chip:hover {
+      background: #0284c7;
+      border-color: #38bdf8;
+    }
+    .map-chip-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: #f8fafc;
+    }
+    .map-chip-sub {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+
+    /* Horizontal scrollable action bar on mobile */
+    #quick-buttons {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      margin-top: 6px;
+      overflow-x: auto;
+      max-width: calc(100vw - 120px);
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #quick-buttons::-webkit-scrollbar {
+      display: none;
+    }
+    .btn-icon {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* Enhanced Mobile Responsive Media Queries */
+    @media (max-width: 900px) {
+      #mobile-controls {
+        display: block !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #hud-top {
+        top: 6px;
+        left: 6px;
+        right: 6px;
+        gap: 6px;
+      }
+      .hud-panel {
+        padding: 8px 10px;
+        border-radius: 10px;
+      }
+      .hospital-title {
+        font-size: 12px;
+        margin-bottom: 3px;
+      }
+      .status-row {
+        gap: 4px;
+        font-size: 10px;
+      }
+      .badge-role, .badge-revenue, .badge-cured, .badge-lost, .badge-trust {
+        font-size: 9px;
+        padding: 2px 5px;
+      }
+      #mission-hud {
+        margin-top: 4px;
+        padding-top: 4px;
+        max-width: 200px;
+        font-size: 10px;
+      }
+      .mission-header {
+        font-size: 9px;
+      }
+      .mission-text {
+        font-size: 10px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      #minimap-wrapper {
+        width: 82px;
+        height: 82px;
+        min-width: 82px;
+        border-width: 1.5px;
+      }
+      .minimap-btn-hint {
+        font-size: 8px;
+        bottom: 2px;
+      }
+      #quick-buttons {
+        max-width: calc(100vw - 100px);
+      }
+      .btn-icon {
+        padding: 5px 8px;
+        font-size: 10px;
+        border-radius: 6px;
+      }
+
+      /* Mobile Controls Ergonomics */
+      #joystick-zone {
+        bottom: 16px;
+        left: 16px;
+        width: 110px;
+        height: 110px;
+        background: rgba(15, 23, 42, 0.45);
+        border: 2px solid rgba(56, 189, 248, 0.4);
+      }
+      #joystick-knob {
+        width: 44px;
+        height: 44px;
+        top: 33px;
+        left: 33px;
+      }
+      #mobile-actions {
+        bottom: 16px;
+        right: 14px;
+        gap: 7px;
+      }
+      .mobile-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 10px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+      }
+      #m-btn-interact {
+        width: 56px;
+        height: 56px;
+        font-size: 14px;
+        background: rgba(2, 132, 199, 0.92);
+        border-color: #38bdf8;
+      }
+
+      /* Modals Responsive */
+      .modal-box {
+        width: 98%;
+        max-height: 92vh;
+        border-radius: 12px;
+      }
+      .modal-header {
+        padding: 10px 14px;
+      }
+      .modal-title {
+        font-size: 14px;
+      }
+      .modal-close {
+        width: 38px;
+        height: 38px;
+        font-size: 24px;
+      }
+      .modal-body {
+        padding: 12px 14px;
+        font-size: 12px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .modal-footer {
+        padding: 10px 14px;
+        gap: 6px;
+      }
+      .dept-card {
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .dept-stat-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      .quiz-option {
+        padding: 12px 12px;
+        font-size: 12px;
+        min-height: 44px;
+      }
+      #campus-map-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 6px;
+      }
+      .map-dept-chip {
+        padding: 8px;
+      }
+      .map-chip-title {
+        font-size: 11px;
+      }
+      .map-chip-sub {
+        font-size: 9px;
+      }
+      #microscope-canvas, #xray-canvas, #icu-monitor-canvas {
+        max-height: 170px;
+      }
+      #interact-prompt {
+        bottom: 82px;
+        padding: 8px 16px;
+        font-size: 12px;
+        max-width: 90vw;
+      }
+      #notification-banner {
+        top: 80px;
+        padding: 7px 16px;
+        font-size: 11px;
+        max-width: 90vw;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div id="game-container"></div>
+  <div id="crosshair"></div>
+
+  <!-- Top HUD -->
+  <div id="hud-top">
+    <div>
+      <div class="hud-panel">
+        <div class="hospital-title">
+          <span>🏥</span>
+          <span id="txt-hosp-name">MEDICAL CITY - DELHI NCR (NIGHT SHIFT)</span>
+        </div>
+        <div class="status-row">
+          <div class="status-item">
+            <span class="badge-role" id="txt-role-badge">DOCTOR</span>
+          </div>
+          <div class="status-item">
+            <span class="badge-role" id="txt-xp-badge" style="display:none;">120 XP</span>
+          </div>
+          <div class="status-item">
+            <span class="badge-revenue" id="txt-rev-badge">💰 ₹3,500</span>
+          </div>
+          <div class="status-item">
+            <span class="badge-cured" id="txt-cured-badge">🎯 Treated: 0 / 10</span>
+          <div class="status-item" id="player-health-item" style="display:flex; align-items:center; gap:3px;">
+            <span style="color:#f43f5e; font-size:10px;">❤️ HP:</span>
+            <div style="width:55px; height:8px; background:#1e293b; border-radius:4px; overflow:hidden; border:1px solid #475569;">
+              <div id="player-health-bar" style="width:100%; height:100%; background:#10b981;"></div>
+            </div>
+          </div>
+          </div>
+          <div class="status-item">
+            <span class="badge-lost" id="txt-lost-badge">🏃 Lost: 0</span>
+          </div>
+          <div class="status-item">
+            <span class="badge-trust" id="txt-trust-badge" style="display:none;">⭐ Trust: 95%</span>
+          </div>
+          <div class="status-item">
+            <span id="lbl-location">Zone:</span>
+            <span class="status-val" id="txt-current-zone">Main Entrance</span>
+          </div>
+          <div class="status-item">
+            <span id="lbl-floor">Floor:</span>
+            <span class="status-val" id="txt-current-floor">G</span>
+          </div>
+        </div>
+        <div id="mission-hud">
+          <div class="mission-header" id="lbl-mission-head">ACTIVE NIGHT SHIFT MISSION</div>
+          <div class="mission-text" id="txt-mission-desc">Walk into the Hospital and examine night patients. 2 wrong answers and the patient will flee!</div>
+        </div>
+      </div>
+      <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
+        <button class="btn-icon" id="btn-toggle-tools" style="background:#0f172a; border-color:#38bdf8;">🧰 <span id="txt-btn-tools">Tools / Menu</span></button>
+      </div>
+      <div id="quick-buttons" style="display:none;">
+        <button class="btn-icon" id="btn-toggle-lang">🌐 <span id="txt-btn-lang">हिन्दी</span></button>
+        <button class="btn-icon" id="btn-toggle-time">☀️ <span id="txt-btn-time">Night Mode</span></button>
+        <button class="btn-icon" id="btn-open-map">🗺️ <span id="txt-btn-map">Campus Map</span></button>
+        <button class="btn-icon" id="btn-open-cases">📋 <span id="txt-btn-cases">Medical Cases (20)</span></button>
+        <button class="btn-icon" id="btn-open-pathology">🔬 <span id="txt-btn-pathology">Pathology Lab</span></button>
+        <button class="btn-icon" id="btn-open-radiology">🩻 <span id="txt-btn-rad">Radiology Screen</span></button>
+        <button class="btn-icon" id="btn-open-icu-screen">📈 <span id="txt-btn-icu">ICU Monitor</span></button>
+        <button class="btn-icon" id="btn-open-role">🧑‍⚕️ <span id="txt-btn-role">Role</span></button>
+        <button class="btn-icon" id="btn-open-settings">⚙️ <span id="txt-btn-settings">Settings</span></button>
+      </div>
+    </div>
+
+    <!-- Minimap Radar -->
+    <div id="minimap-wrapper" title="Click to open Full Hospital Map">
+      <canvas id="minimap-canvas" width="160" height="160"></canvas>
+      <div class="minimap-btn-hint">MAP [M]</div>
+    </div>
+  </div>
+
+  <!-- Notification Banner -->
+  <div id="notification-banner"></div>
+
+  <!-- Proximity Interaction Prompt -->
+  <div id="interact-prompt">
+    <span class="key-badge">E</span>
+    <span id="txt-prompt-msg">Interact</span>
+  </div>
+
+  <!-- Mobile Controls -->
+  <div id="mobile-controls">
+    <div id="joystick-zone">
+      <div id="joystick-knob"></div>
+    </div>
+    <div id="mobile-actions">
+      <button class="mobile-btn" id="m-btn-run">RUN</button>
+      <button class="mobile-btn" id="m-btn-interact">E</button>
+      <button class="mobile-btn" id="m-btn-jump">JUMP</button>
+      <button class="mobile-btn" id="m-btn-map">MAP</button>
+    </div>
+  </div>
+
+  <!-- Department Interface Modal -->
+  <div class="modal-overlay" id="modal-dept">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="dept-modal-title">Department Interface</div>
+        <button class="modal-close" id="btn-close-dept">&times;</button>
+      </div>
+      <div class="modal-body" id="dept-modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btn-dept-action">Confirm</button>
+        <button class="btn-icon" id="btn-dept-cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3-Question Patient Consultation Room Modal -->
+  <div class="modal-overlay" id="modal-patient-exam">
+    <div class="modal-box" style="max-width: 760px;">
+      <div class="modal-header">
+        <div class="modal-title" id="patient-modal-title">🩺 Clinical Patient Consultation Room</div>
+        <button class="modal-close" id="btn-close-exam">&times;</button>
+      </div>
+      <div class="modal-body" id="patient-modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btn-close-exam-footer">Done Examination</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Pathology Laboratory Modal -->
+  <div class="modal-overlay" id="modal-pathology">
+    <div class="modal-box" style="max-width: 740px;">
+      <div class="modal-header">
+        <div class="modal-title">🔬 Automated Pathology Laboratory & Microscopy</div>
+        <button class="modal-close" id="btn-close-pathology">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <button class="btn-icon" id="smear-tab-normal">Normal Blood Smear</button>
+          <button class="btn-icon" id="smear-tab-anemia">Microcytic Anemia</button>
+          <button class="btn-icon" id="smear-tab-dengue">Dengue Thrombocytopenia</button>
+          <button class="btn-icon" id="smear-tab-infection">Leukocytosis (Infection)</button>
+        </div>
+        <canvas id="microscope-canvas" width="600" height="240"></canvas>
+        <div class="dept-card" style="margin-top:10px;">
+          <strong style="color:#38bdf8;" id="lab-smear-title">Microscopic Eyepiece: Normal Erythrocytes</strong>
+          <p style="font-size:12px; color:#cbd5e1; margin-top:4px;" id="lab-smear-desc">
+            Biconcave disc red blood cells with normal central pallor (1/3rd diameter). Platelet clumps and normal polymorphic leukocytes visible under 100x oil immersion.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btn-close-pathology-footer">Close Lab</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 20 Fictional Medical Cases Directory Modal -->
+  <div class="modal-overlay" id="modal-cases">
+    <div class="modal-box" style="max-width: 780px;">
+      <div class="modal-header">
+        <div class="modal-title" id="cases-modal-title">📋 20 Fictional Educational Patient Cases</div>
+        <button class="modal-close" id="btn-close-cases">&times;</button>
+      </div>
+      <div class="modal-body" id="cases-modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btn-back-cases" style="display:none;">Back to Cases List</button>
+        <button class="btn-icon" id="btn-close-cases-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Radiology Digital Lightbox Modal -->
+  <div class="modal-overlay" id="modal-radiology">
+    <div class="modal-box" style="max-width: 720px;">
+      <div class="modal-header">
+        <div class="modal-title">🩻 Digital Radiology Lightbox & Scans</div>
+        <button class="modal-close" id="btn-close-rad">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <button class="btn-icon" id="rad-tab-chest">Chest X-Ray (AP)</button>
+          <button class="btn-icon" id="rad-tab-brain">Brain CT Scan (Axial)</button>
+          <button class="btn-icon" id="rad-tab-knee">Knee Joint X-Ray (Lateral)</button>
+        </div>
+        <canvas id="xray-canvas" width="512" height="256"></canvas>
+        <div class="dept-card" style="margin-top:10px;">
+          <strong style="color:#38bdf8;" id="rad-scan-title">Chest Radiograph: Posteroanterior (PA) View</strong>
+          <p style="font-size:12px; color:#cbd5e1; margin-top:4px;" id="rad-scan-notes">
+            Clear lung fields, normal cardiothoracic ratio, sharp costophrenic angles, normal pulmonary vasculature.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btn-close-rad-footer">Close Lightbox</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ICU Multi-Parameter Live Monitor Modal -->
+  <div class="modal-overlay" id="modal-icu">
+    <div class="modal-box" style="max-width: 700px;">
+      <div class="modal-header">
+        <div class="modal-title">📈 ICU Hemodynamic Life-Support Monitor</div>
+        <button class="modal-close" id="btn-close-icu">&times;</button>
+      </div>
+      <div class="modal-body">
+        <canvas id="icu-monitor-canvas" width="600" height="180"></canvas>
+        <div class="dept-stat-grid">
+          <div class="dept-stat" style="border-left-color:#10b981;">
+            <div class="dept-stat-label">Heart Rate (ECG Lead II)</div>
+            <div class="dept-stat-val" style="color:#34d399;">76 bpm</div>
+          </div>
+          <div class="dept-stat" style="border-left-color:#38bdf8;">
+            <div class="dept-stat-label">Oxygen Saturation (SpO2)</div>
+            <div class="dept-stat-val" style="color:#38bdf8;">99 %</div>
+          </div>
+          <div class="dept-stat" style="border-left-color:#fbbf24;">
+            <div class="dept-stat-label">Non-Invasive BP (NIBP)</div>
+            <div class="dept-stat-val" style="color:#fbbf24;">118/76 mmHg</div>
+          </div>
+          <div class="dept-stat" style="border-left-color:#f43f5e;">
+            <div class="dept-stat-label">Respiration Rate</div>
+            <div class="dept-stat-val" style="color:#f43f5e;">16 /min</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btn-close-icu-footer">Close Monitor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Campus Blueprint Map Modal -->
+  <div class="modal-overlay" id="modal-map">
+    <div class="modal-box" style="max-width: 820px;">
+      <div class="modal-header">
+        <div class="modal-title" id="map-modal-title">🗺️ Hospital Campus & Interior Blueprint</div>
+        <p id="map-help-text" style="display:none;">Navigate campus</p>
+        <button class="modal-close" id="btn-close-map">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="map-tabs">
+          <div class="map-tab-btn active" id="tab-map-g">Ground Floor (Lobby, OPD, ER, ICU, OT)</div>
+          <div class="map-tab-btn" id="tab-map-1">First Floor (Male & Female Wards, Nursing Station)</div>
+        </div>
+        <div id="campus-map-grid"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btn-close-map-footer">Return to Simulation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role & Wardrobe Selector Modal -->
+  <div class="modal-overlay" id="modal-role">
+    <div class="modal-box" style="max-width: 560px;">
+      <div class="modal-header">
+        <div class="modal-title" id="role-modal-title">🧑‍⚕️ Wardrobe & Role Selector (वार्डरोब एवं भूमिका)</div>
+        <button class="modal-close" id="btn-close-role">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="role-subtitle" style="color:#94a3b8; margin-bottom:12px; font-size:13px;">Selecting a role immediately updates your 3D character's clothing, equipment, and duty assignments:</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="case-item-btn" id="role-opt-doctor">
+            <div>
+              <strong style="color:#38bdf8;">1. Resident Doctor (चिकित्सक / डॉक्टर)</strong>
+              <div style="font-size:11px; color:#94a3b8;">Attire: Crisp white doctor coat, stethoscope around neck, formal trousers. Duty: OPD clinics and ward rounds.</div>
+            </div>
+            <span>🩺</span>
+          </button>
+          <button class="case-item-btn" id="role-opt-nurse">
+            <div>
+              <strong style="color:#34d399;">2. Staff Nurse (स्टाफ नर्स)</strong>
+              <div style="font-size:11px; color:#94a3b8;">Attire: Aqua medical scrub suit, nurse cap with cross, ID badge. Duty: Monitor vitals, administer IV fluids, triage.</div>
+            </div>
+            <span>💉</span>
+          </button>
+          <button class="case-item-btn" id="role-opt-explorer">
+            <div>
+              <strong style="color:#fbbf24;">3. Medical Student / Explorer (मेडिकल छात्र)</strong>
+              <div style="font-size:11px; color:#94a3b8;">Attire: Polo shirt, campus backpack strapped on shoulders, college lanyard. Duty: Explore and learn clinical cases.</div>
+            </div>
+            <span>🎓</span>
+          </button>
+          <button class="case-item-btn" id="role-opt-visitor">
+            <div>
+              <strong style="color:#f472b6;">4. Hospital Visitor / Patient Relative (आगंतुक)</strong>
+              <div style="font-size:11px; color:#94a3b8;">Attire: Casual Indian kurta, denim jeans. Duty: Navigate registration, visit pharmacy, meet patients.</div>
+            </div>
+            <span>🚶</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btn-close-role-footer">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title" id="settings-modal-title">⚙️ Game Settings & Performance</div>
+        <button class="modal-close" id="btn-close-settings">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="dept-card">
+          <strong style="color:#38bdf8;">Audio & Controls</strong>
+          <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px; font-size:13px;">
+            <label style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Audio Sound Effects & Footsteps:</span>
+              <input type="checkbox" id="chk-audio" checked style="width:18px; height:18px;">
+            </label>
+            <label style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Realistic Shadows (PC / High End):</span>
+              <input type="checkbox" id="chk-shadows" checked style="width:18px; height:18px;">
+            </label>
+            <label style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Mobile Virtual Joystick:</span>
+              <input type="checkbox" id="chk-touch-controls" checked style="width:18px; height:18px;">
+            </label>
+          </div>
+        </div>
+        <div class="dept-card">
+          <strong style="color:#fbbf24;">Medical Educational Disclaimer</strong>
+          <p style="font-size:11px; color:#94a3b8; margin-top:4px; line-height:1.4;">
+            Medical City is an educational hospital simulation designed for 12th Biology and MBBS 1st Year orientation. All clinical cases, patient profiles, and diagnostics are entirely fictional and designed for learning. This software does not provide medical diagnosis, treatment, or prescribing advice.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btn-save-progress">💾 Save Game</button>
+        <button class="btn-icon" id="btn-close-settings-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Home Start Screen Modal (Default on launch) -->
+  <div class="modal-overlay" id="home-start-screen" style="display:flex; z-index:9999; background:rgba(5, 10, 20, 0.94);">
+    <div class="modal-box" style="max-width: 660px; border-color:#38bdf8;">
+      <div class="modal-header" style="background:#1e293b; text-align:center;">
+        <div class="modal-title" style="justify-content:center; width:100%; font-size:20px;">
+          🏥 MEDICAL CITY 3D - DELHI NCR
+        </div>
+      </div>
+      <div class="modal-body" style="padding:16px 20px;">
+        <div style="text-align:center; margin-bottom:14px;">
+          <div style="font-size:13px; color:#94a3b8;">Govt. Institute of Medical Sciences & Hospital Simulation</div>
+          <div style="margin-top:6px; font-size:12px; background:rgba(56, 189, 248, 0.15); padding:6px 12px; border-radius:20px; display:inline-block; border:1px solid rgba(56, 189, 248, 0.4);">
+            📸 Follow Creator on Instagram: <a href="https://www.instagram.com/x_vipinraj_X/" target="_blank" style="color:#38bdf8; text-decoration:underline; font-weight:bold;">@x_vipinraj_X</a>
+          </div>
+        </div>
+
+        <div class="dept-card" style="margin-bottom:10px;">
+          <strong style="color:#fbbf24;">📖 Game Objective & 2-Strike Rule:</strong>
+          <ul style="margin:6px 0 0 16px; font-size:12px; color:#cbd5e1; line-height:1.5;">
+            <li>Walk into the hospital rooms, beds, and departments to examine patients.</li>
+            <li>Each consultation has <strong>3 sequential clinical questions</strong> (12th Bio / MBBS 1st Year level).</li>
+            <li><strong>2-Strike Rule</strong>: If you give <strong>2 wrong answers</strong>, the patient panics and runs away! (0 fees collected).</li>
+            <li><strong>WIN CONDITION</strong>: Successfully diagnose & treat <strong>10 Patients</strong> to win promotion and complete your shift!</li>
+          </ul>
+        </div>
+
+        <div class="dept-card" style="margin-bottom:10px;">
+          <strong style="color:#38bdf8;">🧑‍⚕️ Choose Your Shift Role & Duty:</strong>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+            <div id="home-role-doctor" style="border:2px solid #38bdf8; background:#0f172a; padding:10px; border-radius:8px; cursor:pointer; text-align:center;">
+              <strong style="color:#38bdf8;">🩺 Resident Doctor</strong>
+              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Attire: White coat & stethoscope. Duty: Clinical diagnosis & treatment. Win: Senior Consultant!</div>
+            </div>
+            <div id="home-role-nurse" style="border:1px solid #475569; background:#0f172a; padding:10px; border-radius:8px; cursor:pointer; text-align:center;">
+              <strong style="color:#34d399;">💉 Staff Nurse</strong>
+              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Attire: Aqua scrubs & cap. Duty: Vitals monitoring & IV lines. Win: Chief Nurse!</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dept-card" style="margin-bottom:10px;">
+          <strong style="color:#a7f3d0;">🎮 Controls:</strong>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            <strong>PC:</strong> WASD to move • Shift to run • Space to jump • E to interact • Mouse to orbit camera<br>
+            <strong>Mobile:</strong> Left virtual joystick • Right buttons: E Interact, Run, Jump, Map
+          </div>
+        </div>
+
+        <div style="font-size:10px; color:#64748b; text-align:center;">
+          ⚠️ <strong>Medical Educational Disclaimer:</strong> Designed for 12th Biology and MBBS 1st Year educational orientation. All cases are entirely fictional.
+        </div>
+
+        <button class="btn-icon" id="btn-start-game" style="width:100%; justify-content:center; font-size:15px; padding:12px; background:#0284c7; margin-top:12px; border-radius:8px; font-weight:bold;">
+          ▶️ START HOSPITAL DUTY / खेल शुरू करें
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Victory Win Modal (Triggered on 10 Patients Treated) -->
+  <div class="modal-overlay" id="modal-victory" style="display:none; z-index:9999; background:rgba(5, 10, 20, 0.95);">
+    <div class="modal-box" style="max-width: 600px; border-color:#10b981; text-align:center;">
+      <div class="modal-header" style="background:#065f46; justify-content:center;">
+        <div class="modal-title" style="color:#ecfdf5; font-size:22px;">
+          🏆 SHIFT ACCOMPLISHED! / बधाई! मिशन पूरा हुआ!
+        </div>
+      </div>
+      <div class="modal-body" style="padding:22px;">
+        <div style="font-size:48px; margin-bottom:10px;">🎉🩺✨</div>
+        <h3 id="victory-role-title" style="color:#34d399; font-size:20px; margin-bottom:8px;">Congratulations Doctor!</h3>
+        <p id="victory-role-desc" style="font-size:14px; color:#e2e8f0; line-height:1.6; margin-bottom:16px;">
+          You have successfully diagnosed and treated 10 patients across Medical City Delhi NCR! Due to your clinical excellence, the Medical Superintendent has officially promoted you to Senior Consultant Physician!
+        </p>
+
+        <div class="dept-stat-grid" style="margin-bottom:16px;">
+          <div class="dept-stat" style="border-left-color:#10b981;"><div class="dept-stat-label">Patients Treated</div><div class="dept-stat-val">10 / 10</div></div>
+          <div class="dept-stat" style="border-left-color:#38bdf8;"><div class="dept-stat-label">Hospital Revenue</div><div class="dept-stat-val" id="victory-revenue-val">₹8,500</div></div>
+          <div class="dept-stat" style="border-left-color:#fbbf24;"><div class="dept-stat-label">Hospital Trust</div><div class="dept-stat-val" id="victory-trust-val">98%</div></div>
+        </div>
+
+        <div style="background:rgba(56, 189, 248, 0.15); padding:8px 14px; border-radius:20px; display:inline-block; margin-bottom:14px; font-size:12px; border:1px solid rgba(56, 189, 248, 0.4);">
+          📸 Follow Creator on Instagram: <a href="https://www.instagram.com/x_vipinraj_X/" target="_blank" style="color:#38bdf8; text-decoration:underline; font-weight:bold;">@x_vipinraj_X</a>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:10px;">
+          <button class="btn-icon" id="btn-victory-restart" style="background:#059669; font-size:14px; padding:10px 18px;">🔄 Start Next Shift</button>
+          <button class="btn-icon" id="btn-victory-continue" style="font-size:14px; padding:10px 18px;">🚶 Continue Exploring Campus</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // --- 12TH BIOLOGY & MBBS 1ST YEAR CLINICAL DATABASE ---
+    const CLINICAL_CASES = [
+  {
+    "id": 1,
+    "title_en": "Heat Exhaustion & Dehydration (लू लगना एवं निर्जलीकरण)",
+    "title_hi": "गर्मी में लू लगना एवं निर्जलीकरण",
+    "dept": "Emergency / आपातकालीन",
+    "patient": {
+      "name": "Ramesh Kumar",
+      "age": 34,
+      "gender": "Male",
+      "occupation": "Construction Worker",
+      "location": "OPD Consultation Room 1"
+    },
+    "complaint_en": "Doctor sahab, I was working under the 44°C Delhi sun for 6 hours. I felt dizzy, my mouth is completely dry, and my legs have painful muscle cramps.",
+    "complaint_hi": "डॉक्टर साहब, 44 डिग्री दिल्ली की धूप में 6 घंटे काम करने के बाद सिर चकरा रहा है, मुंह सूख रहा है और पिंडलियों में तेज ऐंठन हो रही है।",
+    "vitals": {
+      "bp": "96/60 mmHg",
+      "hr": "114 bpm",
+      "rr": "22 /min",
+      "temp": "38.8°C (101.8°F)",
+      "spo2": "98%"
+    },
+    "lab": "Urine: Dark concentrated (Sp. Gravity 1.032). Serum Sodium: 147 mEq/L (Hypernatremia due to water loss).",
+    "q1": {
+      "prompt_en": "Q1 (History): What critical history question should you ask about his fluid intake and sweating?",
+      "prompt_hi": "प्रश्न 1 (इतिहास): मरीज के पानी पीने और पसीने के बारे में क्या जरूरी सवाल पूछेंगे?",
+      "options_en": [
+        "How much water/fluids did you drink, and did profuse sweating suddenly stop?",
+        "Do you have a family history of knee cartilage replacement?",
+        "What brand of cement were you mixing at the site?"
+      ],
+      "options_hi": [
+        "आपने काम के दौरान कितना पानी पिया था, और क्या तेज पसीना आना अचानक रुक गया?",
+        "क्या आपके परिवार में घुटने के कार्टिलेज की बीमारी का इतिहास है?",
+        "आप निर्माण स्थल पर कौन से ब्रांड का सीमेंट मिला रहे थे?"
+      ],
+      "ans": 0
+    },
+    "q2": {
+      "prompt_en": "Q2 (Examination): What immediate physical assessment should you perform first?",
+      "prompt_hi": "प्रश्न 2 (शारीरिक जांच): सबसे पहले कौन सी शारीरिक जांच करेंगे?",
+      "options_en": [
+        "Check skin turgor, tongue dryness, blood pressure, and core body temperature",
+        "Take a full abdominal CT scan with oral contrast",
+        "Perform an immediate knee joint MRI"
+      ],
+      "options_hi": [
+        "त्वचा का लचीलापन (टर्गर), जीभ का सूखापन, ब्लड प्रेशर और शरीर का तापमान जांचना",
+        "पेट का तुरंत कंट्रास्ट सीटी स्कैन कराना",
+        "घुटने के जोड़ का तुरंत एमआरआई कराना"
+      ],
+      "ans": 0
+    },
+    "q3": {
+      "prompt_en": "Q3 (Diagnosis & Treatment): What is the confirmed diagnosis and proper 12th/MBBS management?",
+      "prompt_hi": "प्रश्न 3 (रोग निदान एवं उपचार): सही रोग निदान एवं प्राथमिक उपचार क्या है?",
+      "options_en": [
+        "Heat Exhaustion & Dehydration -> Cool shaded rest, fanning, and Oral Rehydration Salts (ORS) with electrolytes",
+        "Bacterial Meningitis -> High-dose spinal tap and heavy antibiotics",
+        "Acute Appendicitis -> Immediate emergency exploratory laparotomy",
+        "Chronic Osteoarthritis -> Knee replacement surgery"
+      ],
+      "options_hi": [
+        "हीट एग्जॉशन एवं निर्जलीकरण -> ठंडी छाया में आराम, पंखा और इलेक्ट्रोलाइट युक्त ओआरएस (ORS) घोल",
+        "बैक्टीरियल मेनिनजाइटिस -> तुरंत रीढ़ की हड्डी से पानी निकालना और भारी एंटीबायोटिक",
+        "एक्यूट अपेंडिसाइटिस -> तुरंत पेट की बड़ी सर्जरी",
+        "ऑस्टियोआर्थराइटिस -> घुटने बदलने का ऑपरेशन"
+      ],
+      "ans": 0,
+      "explanation_en": "Heat exhaustion results from water and salt depletion under high ambient temperature. Immediate cessation of exertion, active cooling, and oral rehydration with balanced electrolytes (WHO ORS) reverses hypovolemia safely.",
+      "explanation_hi": "हीट एग्जॉशन में पसीने से शरीर का पानी और लवण (नमक) निकल जाता है। तुरंत ठंडी जगह पर आराम और ओआरएस घोल देने से मरीज तेजी से ठीक हो जाता है।"
+    }
+  },
+  {
+    "id": 2,
+    "title_en": "Iron Deficiency Anemia (खून की कमी / एनीमिया)",
+    "title_hi": "आयरन की कमी से एनीमिया (खून की कमी)",
+    "dept": "OPD - Medicine / सामान्य चिकित्सा",
+    "patient": {
+      "name": "Pooja Sharma",
+      "age": 20,
+      "gender": "Female",
+      "occupation": "College Student",
+      "location": "Reception Waiting Area"
+    },
+    "complaint_en": "Doctor, for the past 2 months I have had extreme fatigue during college lectures, pale fingernails, and breathlessness while climbing 1 flight of stairs.",
+    "complaint_hi": "डॉक्टर साहब, 2 महीने से पढ़ाई में बहुत कमजोरी महसूस होती है, नाखून पीले पड़ गए हैं और एक मंजिल सीढ़ी चढ़ने पर ही सांस फूल जाती है।",
+    "vitals": {
+      "bp": "108/68 mmHg",
+      "hr": "92 bpm",
+      "rr": "18 /min",
+      "temp": "36.8°C",
+      "spo2": "99%"
+    },
+    "lab": "Hemoglobin: 8.2 g/dL (Normal 12-15). MCV: 68 fL (Microcytic). Peripheral Smear: Microcytic hypochromic red blood cells.",
+    "q1": {
+      "prompt_en": "Q1 (History): What dietary question is essential to identify the underlying cause of nutritional anemia?",
+      "prompt_hi": "प्रश्न 1 (इतिहास): पोषण संबंधी एनीमिया का कारण जानने के लिए खान-पान का क्या जरूरी सवाल पूछेंगे?",
+      "options_en": [
+        "Do you eat green leafy vegetables, legumes, or iron-rich foods, and are your menstrual cycles heavy?",
+        "How many hours do you spend watching movies on your smartphone?",
+        "Do you prefer traveling by metro train or bus?"
+      ],
+      "options_hi": [
+        "क्या आप हरी पत्तेदार सब्जियां, दालें या आयरन युक्त भोजन खाती हैं, और क्या माहवारी में अधिक रक्तस्राव होता है?",
+        "आप स्मार्टफोन पर कितने घंटे फिल्में देखती हैं?",
+        "आप मेट्रो से यात्रा करना पसंद करती हैं या बस से?"
+      ],
+      "ans": 0
+    },
+    "q2": {
+      "prompt_en": "Q2 (Examination): What classic clinical signs of anemia should be inspected on physical exam?",
+      "prompt_hi": "प्रश्न 2 (शारीरिक जांच): एनीमिया की पहचान के लिए शरीर में कौन से मुख्य लक्षण देखे जाते हैं?",
+      "options_en": [
+        "Pallor of lower palpebral conjunctiva, tongue, and nail beds (koilonychia/brittle nails)",
+        "Size of the earlobe and nasal bridge cartilage",
+        "Color of the hair dye used"
+      ],
+      "options_hi": [
+        "आंखों के अंदरूनी निचले हिस्से (कंजंक्टिवा), जीभ और नाखूनों में पीलापन (पैलर)",
+        "कान की बाली और नाक की हड्डी का आकार",
+        "बालों में लगे हेयर डाई का रंग"
+      ],
+      "ans": 0
+    },
+    "q3": {
+      "prompt_en": "Q3 (Diagnosis & Treatment): What is the diagnosis and foundational medical management?",
+      "prompt_hi": "प्रश्न 3 (रोग निदान एवं उपचार): सही रोग निदान एवं मूलभूत उपचार क्या है?",
+      "options_en": [
+        "Iron Deficiency Anemia -> Oral ferrous sulfate/folic acid tablets and iron-rich diet (spinach, jaggery, legumes)",
+        "Acute Viral Hepatitis -> Complete fluid restriction and high fat diet",
+        "Type 1 Diabetes Mellitus -> Immediate lifelong insulin injection pump",
+        "Vitamin C Toxicity -> Stop all citrus fruits immediately"
+      ],
+      "options_hi": [
+        "आयरन डेफिशियेंसी एनीमिया -> ओरल आयरन (आयरन फोलिक एसिड गोलियां) और आयरन युक्त आहार (पालक, गुड़, दालें)",
+        "हेपेटाइटिस (पीलिया) -> पानी पूरी तरह बंद करना और घी-तेल ज्यादा खाना",
+        "टाइप 1 डायबिटीज -> जीवनभर इंसुलिन पंप लगाना",
+        "विटामिन सी की अधिकता -> सभी खट्टे फल बंद करना"
+      ],
+      "ans": 0,
+      "explanation_en": "In iron deficiency anemia, inadequate iron stores impair hemoglobin synthesis, producing microcytic hypochromic erythrocytes (small pale RBCs). Oral iron supplementation along with vitamin C for absorption restores iron stores.",
+      "explanation_hi": "आयरन की कमी से हीमोग्लोबिन नहीं बन पाता और लाल रक्त कोशिकाएं छोटी और फीकी हो जाती हैं। आयरन की गोलियां और हरी सब्जियां-गुड़ लेने से हीमोग्लोबिन सामान्य हो जाता है।"
+    }
+  },
+  {
+    "id": 3,
+    "title_en": "Dengue Fever & Platelet Surveillance (डेंगू बुखार)",
+    "title_hi": "डेंगू बुखार एवं प्लेटलेट्स निगरानी",
+    "dept": "Pathology & Inpatient / पैथोलॉजी एवं वार्ड",
+    "patient": {
+      "name": "Deepak Joshi",
+      "age": 28,
+      "gender": "Male",
+      "occupation": "Software Engineer",
+      "location": "Pathology Lab Collection Counter"
+    },
+    "complaint_en": "Doctor, for 4 days I have had a high fever of 103°F with severe retro-orbital pain (pain behind my eyes) and excruciating bone/joint aches ('breakbone fever').",
+    "complaint_hi": "डॉक्टर साहब, 4 दिनों से 103 डिग्री तेज बुखार है, आंखों के पीछे बहुत तेज दर्द हो रहा है और जोड़ों-हड्डियों में असहनीय दर्द ('हड्डी तोड़ बुखार') है।",
+    "vitals": {
+      "bp": "112/74 mmHg",
+      "hr": "94 bpm",
+      "rr": "18 /min",
+      "temp": "39.2°C (102.6°F)",
+      "spo2": "98%"
+    },
+    "lab": "Dengue NS1 Antigen: Positive. Platelet Count: 68,000 /µL (Thrombocytopenia). Hematocrit: 44%.",
+    "q1": {
+      "prompt_en": "Q1 (History): Which mosquito species transmits dengue virus, and what environmental exposure is relevant?",
+      "prompt_hi": "प्रश्न 1 (इतिहास): डेंगू वायरस किस मच्छर के काटने से फैलता है और आसपास क्या खतरा देखना चाहिए?",
+      "options_en": [
+        "Aedes aegypti (day-biting mosquito breeding in clean stagnant water in coolers/pots)",
+        "Anopheles mosquito breeding only in deep forest rivers at midnight",
+        "Housefly feeding on garbage piles"
+      ],
+      "options_hi": [
+        "एडीज एजिप्टी (दिन में काटने वाला मच्छर जो कूलर और गमलों के साफ ठहरे पानी में पनपता है)",
+        "एनोफिलीज मच्छर जो केवल आधी रात को घने जंगलों में काटता है",
+        "कचरे पर बैठने वाली घरेलू मक्खी"
+      ],
+      "ans": 0
+    },
+    "q2": {
+      "prompt_en": "Q2 (Examination & Lab): What laboratory test is critical to monitor for life-threatening plasma leakage?",
+      "prompt_hi": "प्रश्न 2 (जांच एवं टेस्ट): प्लाज्मा लीकेज और खतरे की निगरानी के लिए कौन सा टेस्ट सबसे जरूरी है?",
+      "options_en": [
+        "Serial Complete Blood Count (CBC) monitoring Platelet count and Hematocrit (HCT)",
+        "Thyroid Stimulating Hormone (TSH) test",
+        "Knee Joint Synovial Fluid Analysis"
+      ],
+      "options_hi": [
+        "नियमित ब्लड टेस्ट (सीबीसी) जिसमें प्लेटलेट काउंट और हेमाटोक्रिट (HCT) की निगरानी हो",
+        "थायरॉयड हार्मोन (TSH) टेस्ट",
+        "घुटने के जोड़ के पानी की जांच"
+      ],
+      "ans": 0
+    },
+    "q3": {
+      "prompt_en": "Q3 (Diagnosis & Treatment): What is the confirmed diagnosis and safe pharmacological management?",
+      "prompt_hi": "प्रश्न 3 (रोग निदान एवं उपचार): सही निदान और सुरक्षित दवा प्रबंधन क्या है?",
+      "options_en": [
+        "Dengue Viral Fever -> Generous oral hydration (ORS, coconut water), Paracetamol for fever; strictly AVOID Aspirin/Ibuprofen (bleeding risk)",
+        "Bacterial Typhoid -> High-dose Aspirin and Ibuprofen every 2 hours",
+        "Malaria -> Immediate surgical removal of the spleen",
+        "Tuberculosis -> 6 months of heavy steroids alone"
+      ],
+      "options_hi": [
+        "डेंगू बुखार -> प्रचुर मात्रा में तरल पदार्थ (ओआरएस, नारियल पानी), बुखार के लिए केवल पैरासिटामोल; एस्पिरिन/आइबूप्रोफेन बिल्कुल न लें (रक्तस्राव का खतरा)",
+        "टाइफाइड -> हर 2 घंटे में एस्पिरिन और आइबूप्रोफेन की गोलियां देना",
+        "मलेरिया -> तुरंत तिल्ली (प्लीहा) को ऑपरेशन से बाहर निकालना",
+        "टीबी -> केवल 6 महीने तक स्टेरॉयड की भारी खुराक देना"
+      ],
+      "ans": 0,
+      "explanation_en": "Dengue is caused by an arbovirus transmitted by Aedes mosquitoes. Thrombocytopenia and plasma leakage are key risks. NSAIDs like Aspirin/Ibuprofen are strictly contraindicated as they inhibit platelets and trigger dangerous hemorrhage; only Paracetamol and hydration should be used.",
+      "explanation_hi": "डेंगू एडीज मच्छर से फैलता है। इसमें प्लेटलेट्स कम होते हैं, इसलिए भूलकर भी एस्पिरिन या ब्रूफेन (आइबूप्रोफेन) नहीं लेनी चाहिए क्योंकि इससे ब्लीडिंग हो सकती है। केवल पैरासिटामोल और ओआरएस/तरल पदार्थ लें।"
+    }
+  },
+  {
+    "id": 4,
+    "title_en": "Acute Gastroenteritis & Food Poisoning (दस्त-उल्टी / फूड पॉइजनिंग)",
+    "title_hi": "तीव्र आंत्रशोथ एवं निर्जलीकरण (दस्त एवं उल्टी)",
+    "dept": "Emergency Trauma Bay / आपातकालीन",
+    "patient": {
+      "name": "Mohd. Arif",
+      "age": 26,
+      "gender": "Male",
+      "occupation": "Delivery Rider",
+      "location": "Emergency Triage Stretcher 1"
+    },
+    "complaint_en": "Doctor, 18 hours ago I ate roadside spicy chaat and fruit juice. Since last night I've had 7 episodes of watery loose stools, vomiting, and sunken dry eyes.",
+    "complaint_hi": "डॉक्टर साहब, 18 घंटे पहले बाहर चाट और जूस पिया था। कल रात से 7 बार पतले दस्त और उल्टियां हो चुकी हैं, आंखें धंस गई हैं और कमजोरी से खड़ा नहीं हो पा रहा हूं।",
+    "vitals": {
+      "bp": "98/62 mmHg",
+      "hr": "108 bpm",
+      "rr": "20 /min",
+      "temp": "37.5°C",
+      "spo2": "98%"
+    },
+    "lab": "Serum Electrolytes: Na+ 134 mEq/L, K+ 3.2 mEq/L (Mild hypokalemia). Stool examination: Pus cells present, no amoebic trophozoites.",
+    "q1": {
+      "prompt_en": "Q1 (History): What is the most common transmission route for foodborne acute gastroenteritis?",
+      "prompt_hi": "प्रश्न 1 (इतिहास): दूषित भोजन से होने वाले दस्त का मुख्य संक्रमण मार्ग (Transmission Route) कौन सा है?",
+      "options_en": [
+        "Fecal-oral route through contaminated street food, unboiled water, or unwashed hands",
+        "Inhalation of pollen grains from blooming flowers",
+        "Direct skin touch during handshake with healthy people"
+      ],
+      "options_hi": [
+        "दूषित भोजन, बिना उबला पानी या बिना धोए हाथों से फेकल-ओरल रूट (Fecal-oral route)",
+        "खिलते हुए फूलों के परागकणों को सांस द्वारा अंदर लेना",
+        "स्वस्थ व्यक्ति से हाथ मिलाने पर त्वचा के संपर्क से"
+      ],
+      "ans": 0
+    },
+    "q2": {
+      "prompt_en": "Q2 (Examination): What sign confirms significant dehydration on physical exam?",
+      "prompt_hi": "प्रश्न 2 (शारीरिक जांच): गंभीर डिहाइड्रेशन (पानी की कमी) की पुष्टि कौन सा लक्षण करता है?",
+      "options_en": [
+        "Delayed skin pinch recoil (>2 seconds), sunken eyes, and dry buccal mucosa",
+        "Rapid growth of fingernails",
+        "Increased thickness of scalp hair"
+      ],
+      "options_hi": [
+        "पेट की त्वचा को चुटकी से उठाने पर 2 सेकंड से देर में वापस जाना, धंसी हुई आंखें और सूखा मुंह",
+        "हाथ के नाखूनों का बहुत तेजी से बढ़ना",
+        "सिर के बालों का अचानक घना होना"
+      ],
+      "ans": 0
+    },
+    "q3": {
+      "prompt_en": "Q3 (Diagnosis & Treatment): What is the WHO gold-standard primary treatment for non-cholera watery diarrhea?",
+      "prompt_hi": "प्रश्न 3 (रोग निदान एवं उपचार): डब्ल्यूएचओ के अनुसार दस्त में निर्जलीकरण रोकने का विश्वमान्य प्राथमिक इलाज क्या है?",
+      "options_en": [
+        "Acute Gastroenteritis with Dehydration -> Oral Rehydration Solution (ORS) utilizing sodium-glucose cotransport + Zinc supplementation",
+        "Acute Appendicitis -> Immediate total bowel resection surgery",
+        "Kidney Stone -> Complete fluid restriction for 72 hours",
+        "Bronchitis -> Heavy intravenous sedatives"
+      ],
+      "options_hi": [
+        "तीव्र गैस्ट्रोएंटेराइटिस एवं डिहाइड्रेशन -> डब्ल्यूएचओ ओआरएस (ORS) घोल (सोडियम-ग्लूकोज को-ट्रांसपोर्ट) एवं जिंक सप्लीमेंट",
+        "अपेंडिक्स का फटना -> तुरंत बड़ी आंत को काट कर निकालना",
+        "गुर्दे की पथरी -> 72 घंटे तक पानी की एक बूंद भी न देना",
+        "ब्रोंकाइटिस -> बेहोशी का भारी इंजेक्शन लगाना"
+      ],
+      "ans": 0,
+      "explanation_en": "WHO Oral Rehydration Salts (ORS) utilize the active sodium-glucose cotransporter (SGLT-1) in the brush border of intestinal epithelial cells to rapidly absorb water and electrolytes even during diarrhea, preventing fatal hypovolemic shock.",
+      "explanation_hi": "ओआरएस (ORS) में सोडियम और ग्लूकोज का सटीक अनुपात होता है जो आंतों की कोशिकाओं में पानी और नमक को तुरंत सोख लेता है, जिससे मरीज डिहाइड्रेशन और शॉक से बच जाता है।"
+    }
+  },
+  {
+    "id": 5,
+    "title_en": "Bronchial Asthma Exacerbation (अस्थमा का दौरा)",
+    "title_hi": "ब्रोन्कियल अस्थमा का दौरा (सांस फूलना)",
+    "dept": "Inpatient Ward / जनरल वार्ड",
+    "patient": {
+      "name": "Simran Kaur",
+      "age": 22,
+      "gender": "Female",
+      "occupation": "Graphic Designer",
+      "location": "Ward Bed 1 (1st Floor)"
+    },
+    "complaint_en": "Doctor, during the heavy winter smog in Delhi last night, I developed sudden severe breathlessness, chest tightness, and a loud whistling wheezing sound while exhaling.",
+    "complaint_hi": "डॉक्टर साहब, कल रात दिल्ली के तेज प्रदूषण और धुंध में अचानक सीने में भारी जकड़न हो गई, सांस लेने में बहुत तकलीफ हो रही है और सांस छोड़ते समय सीटी जैसी आवाज (व्हीजिंग) आ रही है।",
+    "vitals": {
+      "bp": "122/80 mmHg",
+      "hr": "106 bpm",
+      "rr": "26 /min",
+      "temp": "37.0°C",
+      "spo2": "92% on room air"
+    },
+    "lab": "Peak Expiratory Flow Rate (PEFR): 52% of predicted. Chest Auscultation: Bilateral polyphonic expiratory wheezes.",
+    "q1": {
+      "prompt_en": "Q1 (History): What triggers acute airway narrowing in patients with bronchial asthma?",
+      "prompt_hi": "प्रश्न 1 (इतिहास): ब्रोन्कियल अस्थमा के मरीजों में सांस की नली सिकुड़ने का मुख्य कारण क्या होता है?",
+      "options_en": [
+        "Airway hyperresponsiveness triggered by airborne allergens, particulate dust (PM2.5), cold dry air, or smoke",
+        "Drinking fresh boiled water with honey",
+        "Eating fresh ripe papayas in afternoon"
+      ],
+      "options_hi": [
+        "हवा में मौजूद धूल-धुआं (PM2.5), परागकण, ठंडी सूखी हवा या एलर्जी पैदा करने वाले तत्वों से सांस नलियों में संकुचन",
+        "गुनगुने पानी में शहद डालकर पीना",
+        "दोपहर में पका हुआ पपीता खाना"
+      ],
+      "ans": 0
+    },
+    "q2": {
+      "prompt_en": "Q2 (Examination): What classic sound is heard on chest auscultation with a stethoscope in asthma?",
+      "prompt_hi": "प्रश्न 2 (शारीरिक जांच): स्टेथोस्कोप से सीने की जांच करने पर अस्थमा में कौन सी विशिष्ट आवाज सुनाई देती है?",
+      "options_en": [
+        "Bilateral high-pitched musical expiratory wheezing (rhonchi)",
+        "Crackling metallic click of broken ribs",
+        "Total silence with zero heart sounds"
+      ],
+      "options_hi": [
+        "सांस छोड़ते समय दोनों तरफ सीटी जैसी संगीतनुमा आवाज (एक्सपिरेटरी व्हीजिंग)",
+        "टूटी हुई हड्डियों के आपस में टकराने की आवाज",
+        "पूरी तरह सन्नाटा जिसमें दिल की धड़कन भी न सुनाई दे"
+      ],
+      "ans": 0
+    },
+    "q3": {
+      "prompt_en": "Q3 (Diagnosis & Treatment): What is the first-line emergency rescue medication for acute bronchospasm?",
+      "prompt_hi": "प्रश्न 3 (रोग निदान एवं उपचार): अस्थमा के तीव्र दौरे में सांस नली को तुरंत खोलने वाली पहली जीवन रक्षक दवा कौन सी है?",
+      "options_en": [
+        "Inhaled short-acting beta-2 agonist (Salbutamol bronchodilator inhaler / nebulization) with supplemental oxygen",
+        "High-dose sleeping pills to put patient to sleep",
+        "Heavy cold milk with crushed ice",
+        "Oral antibiotics for 14 days without inhalers"
+      ],
+      "options_hi": [
+        "साल्बुटामोल (Salbutamol) ब्रोंकोडायलेटर इनहेलर या नेबुलाइजर और आवश्यकतानुसार ऑक्सीजन",
+        "मरीज को सुलाने के लिए तेज नींद की गोलियां देना",
+        "बर्फ से भरा हुआ ठंडा दूध पिलाना",
+        "बिना इनहेलर के केवल 14 दिन तक एंटीबायोटिक खिलाना"
+      ],
+      "ans": 0,
+      "explanation_en": "Asthma causes reversible smooth muscle bronchospasm. Inhaled Salbutamol stimulates beta-2 adrenergic receptors in bronchial smooth muscle, activating adenylate cyclase and cAMP to rapidly relax airway constriction within 5 minutes.",
+      "explanation_hi": "अस्थमा में सांस की नलियों की मांसपेशियां अकड़ कर सिकुड़ जाती हैं। साल्बुटामोल इनहेलर सांस की नली की मांसपेशियों को 5 मिनट में ढीला (रिलैक्स) कर देता है जिससे मरीज आसानी से सांस ले पाता है।"
+    }
+  },
+  {
+    "id": 6,
+    "title_en": "Common Cold vs Antibiotic Stewardship (साधारण जुकाम)",
+    "title_hi": "साधारण वायरल जुकाम एवं एंटीबायोटिक का सही उपयोग",
+    "dept": "OPD - ENT / ईएनटी",
+    "patient": {
+      "name": "Ananya Sen",
+      "age": 24,
+      "gender": "Female",
+      "occupation": "School Teacher",
+      "location": "OPD Consultation Room 2"
+    },
+    "complaint_en": "Doctor, for 3 days I've had a runny nose, sneezing, scratchy sore throat, and mild headache. I want you to prescribe strong antibiotics so I can return to work tomorrow.",
+    "complaint_hi": "डॉक्टर साहब, 3 दिन से नाक बह रही है, छींकें आ रही हैं और गले में हल्की खराश है। मुझे कोई तेज एंटीबायोटिक लिख दीजिए ताकि कल स्कूल जा सकूं।",
+    "vitals": {
+      "bp": "116/76 mmHg",
+      "hr": "74 bpm",
+      "rr": "15 /min",
+      "temp": "37.4°C (99.3°F)",
+      "spo2": "99%"
+    },
+    "lab": "Throat examination: Mild erythema, no tonsillar exudate, no cervical lymphadenopathy. Strep test: Negative.",
+    "q1": {
+      "prompt_en": "Q1 (History): What type of infectious pathogen causes the vast majority of uncomplicated common colds?",
+      "prompt_hi": "प्रश्न 1 (इतिहास): साधारण सर्दी-जुकाम का मुख्य कारण किस प्रकार का रोगाणु (Pathogen) होता है?",
+      "options_en": [
+        "Respiratory viruses (such as Rhinovirus, Coronavirus, Adenovirus)",
+        "Intestinal tapeworms (Taenia solium)",
+        "Fungal mold growing on bread"
+      ],
+      "options_hi": [
+        "श्वसन वायरस (जैसे राइनोवायरस, कोरोना वायरस, एडेनोवायरस)",
+        "पेट के कीड़े (टेपवर्म)",
+        "रोटी पर लगने वाली फफूंद"
+      ],
+      "ans": 0
+    },
+    "q2": {
+      "prompt_en": "Q2 (Examination): What is the physical examination finding in a viral common cold?",
+      "prompt_hi": "प्रश्न 2 (शारीरिक जांच): वायरल जुकाम में गले और नाक की जांच पर क्या दिखाई देता है?",
+      "options_en": [
+        "Clear watery rhinorrhea with mildly red pharynx, without purulent pus on tonsils",
+        "Massive black fungal necrosis of facial bones",
+        "Bleeding open ulcers inside the ear canal"
+      ],
+      "options_hi": [
+        "नाक से साफ पानी जैसा स्राव, गले में हल्का लालपन, टॉन्सिल पर कोई मवाद (Pus) नहीं",
+        "चेहरे की हड्डियों का काला पड़ना",
+        "कान के अंदर से खून बहना"
+      ],
+      "ans": 0
+    },
+    "q3": {
+      "prompt_en": "Q3 (Diagnosis & Treatment): Why are antibiotics strictly contraindicated, and what is proper supportive care?",
+      "prompt_hi": "प्रश्न 3 (रोग निदान एवं उपचार): वायरल जुकाम में एंटीबायोटिक क्यों नहीं देनी चाहिए और सही देखभाल क्या है?",
+      "options_en": [
+        "Viral Rhinitis -> Antibiotics kill bacteria, NOT viruses! Supportive care: warm saline gargles, steam, hydration, and rest",
+        "Bacterial Pneumonia -> Intravenous Azithromycin and Amoxicillin injection immediately",
+        "Throat Cancer -> Immediate neck radiation therapy",
+        "Asthma -> Permanent tracheostomy tube"
+      ],
+      "options_hi": [
+        "वायरल जुकाम -> एंटीबायोटिक केवल बैक्टीरिया को मारती हैं, वायरस को नहीं! सही उपचार: नमक-पानी के गरारे, भाप, पानी और आराम",
+        "बैक्टीरियल निमोनिया -> तुरंत नसों में दोहरी एंटीबायोटिक का भारी इंजेक्शन देना",
+        "गले का कैंसर -> तुरंत गले की रेडिएशन थेरेपी शुरू करना",
+        "अस्थमा -> सांस की नली में स्थायी पाइप डालना"
+      ],
+      "ans": 0,
+      "explanation_en": "The common cold is viral in >95% of cases. Antibacterial antibiotics target bacterial cell walls and metabolic enzymes, having zero effect on viruses while promoting antimicrobial resistance (AMR) and disrupting normal gut microflora.",
+      "explanation_hi": "साधारण जुकाम वायरस से होता है। एंटीबायोटिक दवाएं केवल बैक्टीरिया पर असर करती हैं, वायरस पर उनका कोई असर नहीं होता। बेवजह एंटीबायोटिक लेने से शरीर में दवाइयों के प्रति प्रतिरोधक क्षमता (AMR) पैदा हो जाती है।"
+    }
+  }
+];
+
+    // --- LOCALES ---
+    const LOCALES = {
+      en: {
+        hospName: "MEDICAL CITY - DELHI NCR (NIGHT SHIFT)",
+        zone: "Zone:",
+        floor: "Floor:",
+        missionHead: "ACTIVE NIGHT SHIFT MISSION",
+        interactPrompt: "Press [E] or Tap to",
+        dayMode: "Night Mode",
+        nightMode: "Day Shift",
+        mission1: "Night Shift Active: Walk inside and examine night patients. 2 wrong answers and the patient will flee!"
+      },
+      hi: {
+        hospName: "राजकीय आयुर्विज्ञान संस्थान एवं चिकित्सालय, दिल्ली (नाइट शिफ्ट)",
+        zone: "स्थान:",
+        floor: "मंजिल:",
+        missionHead: "सक्रिय नाइट शिफ्ट मिशन",
+        interactPrompt: "[E] दबाएं या टैप करें:",
+        dayMode: "रात्रि मोड (Night Mode)",
+        nightMode: "दिन का दृश्य",
+        mission1: "नाइट शिफ्ट सक्रिय है: अस्पताल के अंदर जाएं और मरीजों की जांच करें। 2 गलत जवाब पर मरीज भाग जाएगा!"
+      }
+    };
+    let currentLang = 'en';
+
+    // --- GAME STATE: NIGHT MODE DEFAULT ---
+    const state = {
+      role: 'doctor',
+      revenue: 3500,
+      patientsTreated: 0,
+      patientsLost: 0,
+      trust: 95,
+      currentFloor: 0,
+      isNight: true, // DEFAULT NIGHT MODE!
+      audioEnabled: true,
+      shadowsEnabled: true,
+      joystickEnabled: true,
+      activeTarget: null,
+      activeZone: null,
+      currentStrikes: 0,
+      solvedCases: []
+    };
+
+    // --- AUDIO ENGINE ---
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.lastStepTime = 0;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      playClick() {
+        return; // only receptionist sound enabled
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.04);
+        g.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      }
+      
+      playReceptionistChime(roleName) {
+        if (!state.audioEnabled) return;
+        this.init();
+        if (this.ctx) {
+          const now = this.ctx.currentTime;
+          const tone = (f, d) => {
+            const osc = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, now + d);
+            g.gain.setValueAtTime(0.14, now + d);
+            g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.45);
+            osc.connect(g);
+            g.connect(this.ctx.destination);
+            osc.start(now + d);
+            osc.stop(now + d + 0.45);
+          };
+          tone(523.25, 0.0);
+          tone(659.25, 0.2);
+        }
+        try {
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const activeRole = roleName || state.role;
+            let speechText = "";
+            if (activeRole === 'doctor') {
+              speechText = "Welcome to Delhi Government Medical City Hospital, Doctor Sahab. Your duty is to diagnose and treat 10 patients on the hospital beds in OPD and Emergency.";
+            } else {
+              speechText = "Welcome to Delhi Government Medical City Hospital, Staff Nurse Sister. Your duty is to check vitals, IV drips, and care for 10 patients on the hospital beds.";
+            }
+            const utter = new SpeechSynthesisUtterance(speechText);
+            utter.rate = 0.98;
+            utter.pitch = 1.1;
+            window.speechSynthesis.speak(utter);
+          }
+        } catch(e) {}
+      }
+
+      playCashChime() {
+        return; // only receptionist sound enabled
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const playDing = (f, d) => {
+          const osc = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + d);
+          g.gain.setValueAtTime(0.2, now + d);
+          g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.4);
+          osc.connect(g);
+          g.connect(this.ctx.destination);
+          osc.start(now + d);
+          osc.stop(now + d + 0.4);
+        };
+        playDing(987.77, 0.0);  // B5
+        playDing(1318.51, 0.12); // E6
+      }
+      playBuzzer() {
+        return; // only receptionist sound enabled
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(170, now);
+        osc.frequency.linearRampToValueAtTime(80, now + 0.45);
+        g.gain.setValueAtTime(0.2, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.45);
+      }
+      playFootstep(isRunning) {
+        if (!state.audioEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const interval = isRunning ? 0.26 : 0.42;
+        if (now - this.lastStepTime < interval) return;
+        this.lastStepTime = now;
+
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(140 + Math.random() * 30, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.05);
+        g.gain.setValueAtTime(0.05, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      }
+      playElevatorChime() {
+        return; // only receptionist sound enabled
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const tone = (f, d) => {
+          const osc = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now + d);
+          g.gain.setValueAtTime(0.12, now + d);
+          g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.35);
+          osc.connect(g);
+          g.connect(this.ctx.destination);
+          osc.start(now + d);
+          osc.stop(now + d + 0.35);
+        };
+        tone(659.25, 0.0);
+        tone(523.25, 0.22);
+      }
+      playECGBeep() {
+        if (!state.audioEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        g.gain.setValueAtTime(0.06, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.09);
+      }
+    }
+    const audio = new AudioEngine();
+
+    // --- THREE.JS 3D SCENE: DEFAULT NIGHT MODE ---
+    const container = document.getElementById('game-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050a14); // Dark Night Sky
+    scene.fog = new THREE.FogExp2(0x050a14, 0.0035);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    // Night Mode Lighting (Moonlight + Hospital Spotlights)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.28);
+    scene.add(ambientLight);
+
+    const sunLight = new THREE.DirectionalLight(0x38bdf8, 0.22); // Cool blue moonlight
+    sunLight.position.set(70, 110, 60);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 10;
+    sunLight.shadow.camera.far = 280;
+    const sd = 100;
+    sunLight.shadow.camera.left = -sd;
+    sunLight.shadow.camera.right = sd;
+    sunLight.shadow.camera.top = sd;
+    sunLight.shadow.camera.bottom = -sd;
+    scene.add(sunLight);
+
+    // Procedural Textures
+    function makeTileTexture(color1, color2, step=32) {
+      const cv = document.createElement('canvas');
+      cv.width = 128; cv.height = 128;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = color1;
+      ctx.fillRect(0,0,128,128);
+      ctx.strokeStyle = color2;
+      ctx.lineWidth = 2;
+      for (let i = 0; i <= 128; i += step) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 128); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(128, i); ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(cv);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Rich Procedural Textures for Authentic Delhi Govt Hospital (AIIMS / Safdarjung Style)
+    function makeBrickTexture() {
+      const cv = document.createElement('canvas');
+      cv.width = 256; cv.height = 256;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#7c2d12';
+      ctx.fillRect(0, 0, 256, 256);
+      for (let row = 0; row < 16; row++) {
+        const y = row * 16;
+        const offset = (row % 2) * 16;
+        for (let col = -1; col < 9; col++) {
+          const x = col * 32 + offset;
+          ctx.fillStyle = (row + col) % 3 === 0 ? '#9a3412' : '#b45309';
+          ctx.fillRect(x + 1, y + 1, 30, 14);
+        }
+      }
+      const tex = new THREE.CanvasTexture(cv);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(6, 4);
+      return tex;
+    }
+
+    function makeSandstoneTexture() {
+      const cv = document.createElement('canvas');
+      cv.width = 256; cv.height = 256;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#fde68a';
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 2;
+      for (let y = 0; y <= 256; y += 32) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(256, y); ctx.stroke();
+      }
+      for (let x = 0; x <= 256; x += 64) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 256); ctx.stroke();
+      }
+      // Subtle hospital green dado stripe at bottom
+      ctx.fillStyle = '#0f766e';
+      ctx.fillRect(0, 210, 256, 46);
+      const tex = new THREE.CanvasTexture(cv);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(4, 2);
+      return tex;
+    }
+
+    function makeTerrazzoTileTexture() {
+      const cv = document.createElement('canvas');
+      cv.width = 256; cv.height = 256;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#f1f5f9';
+      ctx.fillRect(0, 0, 256, 256);
+      // Terrazzo speckles
+      for (let i = 0; i < 180; i++) {
+        ctx.fillStyle = i % 2 === 0 ? '#94a3b8' : '#cbd5e1';
+        ctx.fillRect((i * 73) % 256, (i * 41) % 256, 3, 3);
+      }
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      for (let i = 0; i <= 256; i += 64) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 256); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i); ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(cv);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(20, 20);
+      return tex;
+    }
+
+    function makeSignboardMesh(titleHi, titleEn, bgColor='#0369a1', textColor='#ffffff', w=10, h=2.2) {
+      const cv = document.createElement('canvas');
+      cv.width = 512; cv.height = 128;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, 512, 128);
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(4, 4, 504, 120);
+      ctx.fillStyle = textColor;
+      ctx.font = 'bold 28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(titleHi, 256, 52);
+      ctx.fillStyle = '#fde047';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText(titleEn, 256, 94);
+      const tex = new THREE.CanvasTexture(cv);
+      return new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, 0.25),
+        new THREE.MeshBasicMaterial({ map: tex })
+      );
+    }
+
+    const texFloorMarble = makeTerrazzoTileTexture();
+    const texGrass = makeTileTexture('#14532d', '#166534', 16);
+    texGrass.repeat.set(36, 36);
+    const texBrick = makeBrickTexture();
+    const texSandstone = makeSandstoneTexture();
+
+    const mats = {
+      grass: new THREE.MeshLambertMaterial({ map: texGrass }),
+      road: new THREE.MeshLambertMaterial({ color: 0x1f2937 }),
+      curb: new THREE.MeshLambertMaterial({ color: 0x94a3b8 }),
+      sandstoneWall: new THREE.MeshLambertMaterial({ map: texSandstone }),
+      brickWall: new THREE.MeshLambertMaterial({ map: texBrick }),
+      residentialPlaster: new THREE.MeshLambertMaterial({ color: 0xfde047 }),
+      residentialBalcony: new THREE.MeshLambertMaterial({ color: 0xe2e8f0 }),
+      waterTankBlack: new THREE.MeshLambertMaterial({ color: 0x111827 }),
+      terracottaRoof: new THREE.MeshLambertMaterial({ color: 0xc2410c }),
+      speedBreaker: new THREE.MeshLambertMaterial({ color: 0xeab308 }),
+      acUnit: new THREE.MeshLambertMaterial({ color: 0xf1f5f9 }),
+      whiteWall: new THREE.MeshLambertMaterial({ color: 0xf8fafc }),
+      interiorTile: new THREE.MeshLambertMaterial({ map: texFloorMarble }),
+      emergencyRed: new THREE.MeshLambertMaterial({ color: 0xdc2626 }),
+      metal: new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.35, metalness: 0.8 }),
+      glass: new THREE.MeshPhysicalMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5, roughness: 0.1 }),
+      bedSheet: new THREE.MeshLambertMaterial({ color: 0xe0f2fe }),
+      wood: new THREE.MeshLambertMaterial({ color: 0x78350f }),
+      treeLeaves: new THREE.MeshLambertMaterial({ color: 0x15803d }),
+      treeTrunk: new THREE.MeshLambertMaterial({ color: 0x451a03 }),
+      water: new THREE.MeshLambertMaterial({ color: 0x0284c7, transparent: true, opacity: 0.85 }),
+      nightWindowLit: new THREE.MeshBasicMaterial({ color: 0xfef08a }) // Warm glowing night windows
+    };
+
+    const colliders = [];
+    function addBoxCollider(minX, maxX, minZ, maxZ, minY=-2, maxY=25) {
+      colliders.push({ minX, maxX, minZ, maxZ, minY, maxY });
+    }
+
+    // --- 3D ENVIRONMENT: REALISTIC CAMPUS IN NIGHT SHIFT ---
+    const worldGroup = new THREE.Group();
+    scene.add(worldGroup);
+
+    // 1. Campus Ground
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(280, 280), mats.grass);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    worldGroup.add(ground);
+
+    // 2. Roads with Speed Breakers
+    const mainAvenue = new THREE.Mesh(new THREE.PlaneGeometry(16, 95), mats.road);
+    mainAvenue.rotation.x = -Math.PI / 2;
+    mainAvenue.position.set(0, 0.05, 75);
+    mainAvenue.receiveShadow = true;
+    worldGroup.add(mainAvenue);
+
+    const crossAvenue = new THREE.Mesh(new THREE.PlaneGeometry(220, 14), mats.road);
+    crossAvenue.rotation.x = -Math.PI / 2;
+    crossAvenue.position.set(0, 0.05, 30);
+    crossAvenue.receiveShadow = true;
+    worldGroup.add(crossAvenue);
+
+    function createSpeedBreaker(x, z, w, d) {
+      const sb = new THREE.Mesh(new THREE.BoxGeometry(w, 0.25, d), mats.speedBreaker);
+      sb.position.set(x, 0.12, z);
+      worldGroup.add(sb);
+    }
+    createSpeedBreaker(0, 85, 16, 1.2);
+    createSpeedBreaker(0, 45, 16, 1.2);
+    createSpeedBreaker(50, 30, 1.2, 14);
+    createSpeedBreaker(-50, 30, 1.2, 14);
+
+    // 3. Main Entrance Gate with Interactive Rotating Boom Barrier
+    const gateGroup = new THREE.Group();
+    gateGroup.position.set(0, 0, 115);
+
+    const p1 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 9, 2.5), mats.brickWall);
+    p1.position.set(-8, 4.5, 0);
+    p1.castShadow = true; gateGroup.add(p1);
+
+    const p2 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 9, 2.5), mats.brickWall);
+    p2.position.set(8, 4.5, 0);
+    p2.castShadow = true; gateGroup.add(p2);
+
+    const archHeader = new THREE.Mesh(new THREE.BoxGeometry(20, 2, 3), mats.sandstoneWall);
+    archHeader.position.set(0, 9, 0);
+    archHeader.castShadow = true; gateGroup.add(archHeader);
+
+    const boomPivot = new THREE.Group();
+    boomPivot.position.set(-7, 1.2, 0);
+    const boomArm = new THREE.Mesh(new THREE.BoxGeometry(14, 0.25, 0.25), mats.emergencyRed);
+    boomArm.position.set(7, 0, 0);
+    boomPivot.add(boomArm);
+    gateGroup.add(boomPivot);
+
+    worldGroup.add(gateGroup);
+    addBoxCollider(-80, -9, 113, 117);
+    addBoxCollider(9, 80, 113, 117);
+
+    // 4. Central Healing Fountain & Garden
+    const fountain = new THREE.Group();
+    fountain.position.set(0, 0, 60);
+    const poolRing = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 1, 24), mats.curb);
+    poolRing.position.y = 0.5;
+    poolRing.receiveShadow = true; fountain.add(poolRing);
+    const waterMesh = new THREE.Mesh(new THREE.CylinderGeometry(7, 7, 0.7, 24), mats.water);
+    waterMesh.position.y = 0.75;
+    fountain.add(waterMesh);
+    const emblem = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, 4, 12), mats.metal);
+    emblem.position.y = 2.5;
+    fountain.add(emblem);
+    worldGroup.add(fountain);
+    addBoxCollider(-7, 7, 53, 67);
+
+    // 5. REALISTIC RESIDENTIAL DOCTORS' HOUSES & QUARTERS
+    function buildRealisticResidentialHouse(x, z, isBungalow=false) {
+      const house = new THREE.Group();
+      house.position.set(x, 0, z);
+
+      if (isBungalow) {
+        const main = new THREE.Mesh(new THREE.BoxGeometry(18, 5, 14), mats.whiteWall);
+        main.position.y = 2.5;
+        main.castShadow = true; house.add(main);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(13, 3.5, 4), mats.terracottaRoof);
+        roof.position.y = 6.75;
+        roof.rotation.y = Math.PI / 4;
+        house.add(roof);
+
+        const porch = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 5), mats.residentialBalcony);
+        porch.position.set(0, 3.2, 9);
+        house.add(porch);
+        const col1 = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 3), mats.metal);
+        col1.position.set(-3.5, 1.5, 11);
+        house.add(col1);
+        const col2 = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 3), mats.metal);
+        col2.position.set(3.5, 1.5, 11);
+        house.add(col2);
+
+        const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.6, 16), mats.waterTankBlack);
+        tank.position.set(-5, 7.8, -3);
+        house.add(tank);
+
+        const ac = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 0.4), mats.acUnit);
+        ac.position.set(7, 3, 7.2);
+        house.add(ac);
+
+        // Glowing Night Windows
+        const nw = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.6), mats.nightWindowLit);
+        nw.position.set(-3, 2.5, 7.1);
+        house.add(nw);
+
+        addBoxCollider(x - 9.5, x + 9.5, z - 7.5, z + 7.5);
+      } else {
+        const bldg = new THREE.Mesh(new THREE.BoxGeometry(22, 12, 16), mats.residentialPlaster);
+        bldg.position.y = 6;
+        bldg.castShadow = true; house.add(bldg);
+
+        [3.5, 7.5, 11].forEach(by => {
+          const balL = new THREE.Mesh(new THREE.BoxGeometry(6, 1, 1.8), mats.residentialBalcony);
+          balL.position.set(-6, by, 8.8);
+          house.add(balL);
+          const balR = new THREE.Mesh(new THREE.BoxGeometry(6, 1, 1.8), mats.residentialBalcony);
+          balR.position.set(6, by, 8.8);
+          house.add(balR);
+
+          const acL = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.7, 0.35), mats.acUnit);
+          acL.position.set(-9.5, by + 0.5, 8.2);
+          house.add(acL);
+
+          // Glowing night windows
+          const win1 = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.8), mats.nightWindowLit);
+          win1.position.set(-6, by + 1.2, 8.9);
+          house.add(win1);
+        });
+
+        const tank1 = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 1.8, 16), mats.waterTankBlack);
+        tank1.position.set(-5, 13, 0);
+        house.add(tank1);
+        const tank2 = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 1.8, 16), mats.waterTankBlack);
+        tank2.position.set(5, 13, 0);
+        house.add(tank2);
+
+        addBoxCollider(x - 11.5, x + 11.5, z - 8.5, z + 8.5);
+      }
+
+      worldGroup.add(house);
+    }
+
+    buildRealisticResidentialHouse(75, 55, false); // Doctors' Hostel
+    buildRealisticResidentialHouse(-75, 65, true);  // Superintendent Bungalow
+
+    // 6. WALKABLE HOSPITAL BUILDING COMPLEX
+    const hospital = new THREE.Group();
+    hospital.position.set(0, 0, -5);
+
+    const groundFloorSlab = new THREE.Mesh(new THREE.BoxGeometry(90, 0.3, 50), mats.interiorTile);
+    groundFloorSlab.position.set(0, 0.15, 0);
+    groundFloorSlab.receiveShadow = true;
+    hospital.add(groundFloorSlab);
+
+    const floor1Slab = new THREE.Mesh(new THREE.BoxGeometry(90, 0.5, 50), mats.interiorTile);
+    floor1Slab.position.set(0, 7.5, 0);
+    hospital.add(floor1Slab);
+
+    const roofSlab = new THREE.Mesh(new THREE.BoxGeometry(90, 0.5, 50), mats.curb);
+    roofSlab.position.set(0, 14.5, 0);
+    hospital.add(roofSlab);
+
+    const frontWallL = new THREE.Mesh(new THREE.BoxGeometry(40, 7.5, 0.8), mats.sandstoneWall);
+    frontWallL.position.set(-25, 3.75, 25);
+    frontWallL.castShadow = true; hospital.add(frontWallL);
+    addBoxCollider(-45, -5, 19, 21);
+
+    const frontWallR = new THREE.Mesh(new THREE.BoxGeometry(40, 7.5, 0.8), mats.sandstoneWall);
+    frontWallR.position.set(25, 3.75, 25);
+    frontWallR.castShadow = true; hospital.add(frontWallR);
+    addBoxCollider(5, 45, 19, 21);
+
+    // Automatic Sliding Glass Doors
+    const doorSlideL = new THREE.Mesh(new THREE.BoxGeometry(2.6, 6, 0.2), mats.glass);
+    doorSlideL.position.set(-2.5, 3, 25);
+    hospital.add(doorSlideL);
+
+    const doorSlideR = new THREE.Mesh(new THREE.BoxGeometry(2.6, 6, 0.2), mats.glass);
+    doorSlideR.position.set(2.5, 3, 25);
+    hospital.add(doorSlideR);
+
+    // Outer & Corridor Walls
+    const wallWest = new THREE.Mesh(new THREE.BoxGeometry(0.8, 14.5, 50), mats.brickWall);
+    wallWest.position.set(-45, 7.25, 0);
+    wallWest.castShadow = true; hospital.add(wallWest);
+    addBoxCollider(-46, -44, -30, 20);
+
+    const wallEast = new THREE.Mesh(new THREE.BoxGeometry(0.8, 14.5, 50), mats.brickWall);
+    wallEast.position.set(45, 7.25, 0);
+    wallEast.castShadow = true; hospital.add(wallEast);
+    addBoxCollider(44, 46, -30, 20);
+
+    const wallNorth = new THREE.Mesh(new THREE.BoxGeometry(90, 14.5, 0.8), mats.sandstoneWall);
+    wallNorth.position.set(0, 7.25, -25);
+    wallNorth.castShadow = true; hospital.add(wallNorth);
+    addBoxCollider(-45, 45, -31, -29);
+
+    const innerWallL = new THREE.Mesh(new THREE.BoxGeometry(38, 7.5, 0.5), mats.whiteWall);
+    innerWallL.position.set(-24, 3.75, 5);
+    hospital.add(innerWallL);
+    addBoxCollider(-43, -5, -1, 1);
+
+    const innerWallR = new THREE.Mesh(new THREE.BoxGeometry(38, 7.5, 0.5), mats.whiteWall);
+    innerWallR.position.set(24, 3.75, 5);
+    hospital.add(innerWallR);
+    addBoxCollider(5, 43, -1, 1);
+
+    // Reception Desk
+    const recepDesk = new THREE.Mesh(new THREE.BoxGeometry(10, 1.2, 2.4), mats.brickWall);
+    recepDesk.position.set(0, 0.6, 14);
+    recepDesk.castShadow = true; hospital.add(recepDesk);
+    addBoxCollider(-5.5, 5.5, 7.8, 10.2);
+
+    // OPD Doctor Desk & Exam Couch
+    const opdDesk = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.1, 2), mats.wood);
+    opdDesk.position.set(-28, 0.55, 15);
+    hospital.add(opdDesk);
+    addBoxCollider(-30, -26, 9, 11);
+
+    const opdCouch = new THREE.Mesh(new THREE.BoxGeometry(2, 0.9, 4), mats.bedSheet);
+    opdCouch.position.set(-38, 0.45, 15);
+    hospital.add(opdCouch);
+    addBoxCollider(-40, -36, 8, 12);
+
+    // Emergency Stretchers
+    function addStretcher(sx, sz) {
+      const str = new THREE.Group();
+      str.position.set(sx, 0.15, sz);
+      const sf = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 4.2), mats.metal);
+      sf.position.y = 0.4;
+      str.add(sf);
+      const sm = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.3, 4.0), mats.bedSheet);
+      sm.position.y = 0.95;
+      str.add(sm);
+      hospital.add(str);
+      addBoxCollider(sx - 1.2, sx + 1.2, sz - 7, sz - 3);
+    }
+    addStretcher(26, 15);
+    addStretcher(35, 15);
+
+    // Working Elevator Cabin
+    const elevatorTower = new THREE.Mesh(new THREE.BoxGeometry(8, 14.5, 7), mats.brickWall);
+    elevatorTower.position.set(0, 7.25, -12);
+    hospital.add(elevatorTower);
+
+    const elevatorCabin = new THREE.Group();
+    elevatorCabin.position.set(0, 0.15, -12);
+    const cabFloor = new THREE.Mesh(new THREE.BoxGeometry(6, 0.3, 5), mats.metal);
+    elevatorCabin.add(cabFloor);
+    const cabWallL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 5, 5), mats.metal);
+    cabWallL.position.set(-2.9, 2.5, 0);
+    elevatorCabin.add(cabWallL);
+    const cabWallR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 5, 5), mats.metal);
+    cabWallR.position.set(2.9, 2.5, 0);
+    elevatorCabin.add(cabWallR);
+    hospital.add(elevatorCabin);
+
+    // 1st Floor Hospital Beds
+    for (let bx = -36; bx <= -16; bx += 8) {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 4.2), mats.metal);
+      b.position.set(bx, 7.9, -10);
+      hospital.add(b);
+      const bm = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.3, 4.0), mats.bedSheet);
+      bm.position.set(bx, 8.45, -10);
+      hospital.add(bm);
+      const iv = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.8), mats.metal);
+      iv.position.set(bx - 1.3, 8.9, -11.5);
+      hospital.add(iv);
+    }
+
+    worldGroup.add(hospital);
+
+    // 7. MULTIPLE ACTIVE PATIENTS IN HOSPITAL (6 Living Patient Entities)
+    const worldPatients = [
+      {
+        id: 1,
+        caseId: 1,
+        name: "Ramesh Kumar (34y M)",
+        locName: "OPD Room 1 (Sitting on chair)",
+        x: -28, z: 12, y: 0,
+        dialog_en: "Doctor sahab, I was working under the 44°C Delhi sun and felt extreme thirst, dizziness, and muscle cramps...",
+        dialog_hi: "डॉक्टर साहब, 44 डिग्री धूप में काम करने के बाद बहुत तेज चक्कर और डिहाइड्रेशन हो गया है...",
+        isExamined: false,
+        isRunningAway: false,
+        mesh: null
+      },
+      {
+        id: 2,
+        caseId: 4,
+        name: "Mohd. Arif (26y M)",
+        locName: "Emergency Triage Stretcher 1",
+        x: 26, z: 10, y: 0,
+        dialog_en: "Doctor, I have had acute watery diarrhea and severe nausea for 18 hours after eating outside...",
+        dialog_hi: "डॉक्टर साहब, बाहर का खाना खाने के बाद 18 घंटे से लगातार दस्त और उल्टी हो रही है...",
+        isExamined: false,
+        isRunningAway: false,
+        mesh: null
+      },
+      {
+        id: 3,
+        caseId: 5,
+        name: "Simran Kaur (22y F)",
+        locName: "Ward Bed 1 (1st Floor)",
+        x: -28, z: -15, y: 7.5,
+        dialog_en: "Doctor, the severe Delhi winter smog triggered sudden chest tightness and expiratory wheezing...",
+        dialog_hi: "डॉक्टर, दिल्ली के प्रदूषण और धुंध से सीने में तेज जकड़न और सांस फूलने की समस्या हो रही है...",
+        isExamined: false,
+        isRunningAway: false,
+        mesh: null
+      },
+      {
+        id: 4,
+        caseId: 2,
+        name: "Pooja Sharma (20y F)",
+        locName: "Reception Waiting Area",
+        x: -12, z: 12, y: 0,
+        dialog_en: "Doctor, I have severe fatigue during study, pale fingernails, and breathlessness while climbing stairs...",
+        dialog_hi: "डॉक्टर साहब, पढ़ाई में बहुत कमजोरी, नाखूनों में पीलापन और सीढ़ियां चढ़ने में सांस फूल जाती है...",
+        isExamined: false,
+        isRunningAway: false,
+        mesh: null
+      },
+      {
+        id: 5,
+        caseId: 3,
+        name: "Deepak Joshi (28y M)",
+        locName: "Pathology Lab Blood Counter",
+        x: 75, z: -15, y: 0,
+        dialog_en: "Doctor, 4 days of 103°F breakbone fever and severe eye pain. Please check my platelet count!",
+        dialog_hi: "डॉक्टर साहब, 4 दिनों से 103 डिग्री हड्डी तोड़ बुखार और आंखों में दर्द है। मेरी प्लेटलेट्स जांच कर दीजिए!",
+        isExamined: false,
+        isRunningAway: false,
+        mesh: null
+      },
+      {
+        id: 6,
+        caseId: 6,
+        name: "Ananya Sen (24y F)",
+        locName: "OPD Consultation Room 2",
+        x: -36, z: 12, y: 0,
+        dialog_en: "Doctor, I have had a common cold, sneezing, and runny nose for 3 days. Please give me antibiotics...",
+        dialog_hi: "डॉक्टर साहब, 3 दिन से जुकाम और छींकें हैं, मुझे तेज एंटीबायोटिक लिख दीजिए...",
+        isExamined: false,
+        isRunningAway: false,
+        mesh: null
+      },
+      {
+        id: 7,
+        caseId: 1,
+        name: "Vikas Rawat (19y M)",
+        locName: "Ward Bed 2 (1st Floor)",
+        x: -20, z: -15, y: 7.5,
+        dialog_en: "Doctor/Nurse, I felt dizzy and faint from severe dehydration while traveling in the heat...",
+        dialog_hi: "डॉक्टर साहब/सिस्टर, गर्मी में तेज निर्जलीकरण से चक्कर आ रहे हैं...",
+        isExamined: false,
+        isRunningAway: false,
+        mesh: null
+      },
+      {
+        id: 8,
+        caseId: 4,
+        name: "Sunita Devi (42y F)",
+        locName: "Emergency Stretcher 2",
+        x: 35, z: 10, y: 0,
+        dialog_en: "Doctor/Nurse, I have acute loose stools and nausea after wedding dinner. Please start my IV drip!",
+        dialog_hi: "डॉक्टर/सिस्टर, शादी का खाना खाने के बाद उल्टी-दस्त हो रहे हैं, कृपया ड्रिप चढ़ाएं!",
+        isExamined: false,
+        isRunningAway: false,
+        mesh: null
+      }
+    ];
+
+    // Build a complete 3D Hospital Bed + IV Drip + Patient Lying on Bed for every patient!
+    function createPatientMesh(p) {
+      const g = new THREE.Group();
+      g.position.set(p.x, p.y, p.z);
+
+      // 1. Hospital Bed Frame & Headboard
+      const bedFrame = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.5, 4.0), mats.metal);
+      bedFrame.position.y = 0.45;
+      bedFrame.castShadow = true;
+      g.add(bedFrame);
+
+      const headboard = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.3, 0.2), mats.wood);
+      headboard.position.set(0, 0.9, -1.9);
+      g.add(headboard);
+
+      const footboard = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.0, 0.18), mats.metal);
+      footboard.position.set(0, 0.75, 1.9);
+      g.add(footboard);
+
+      // Mattress & Hospital Blue Sheet
+      const mattress = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.28, 3.7), mats.bedSheet);
+      mattress.position.y = 0.82;
+      g.add(mattress);
+
+      // White Pillow
+      const pillow = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.16, 0.7), mats.whiteWall);
+      pillow.position.set(0, 1.02, -1.35);
+      g.add(pillow);
+
+      // IV Drip Stand & Saline Bottle beside Bed
+      const ivPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.5), mats.metal);
+      ivPole.position.set(1.3, 1.25, -1.2);
+      g.add(ivPole);
+      const ivBottle = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.45), mats.glass);
+      ivBottle.position.set(1.3, 2.2, -1.2);
+      g.add(ivBottle);
+
+      // Bedside Medicine Locker
+      const locker = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.0, 0.8), mats.whiteWall);
+      locker.position.set(-1.5, 0.5, -1.2);
+      g.add(locker);
+
+      // 2. Patient Lying/Reclining on the Hospital Bed
+      const patientBodyGroup = new THREE.Group();
+      // Blanket covering lower torso/legs
+      const blanket = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.32, 2.1), new THREE.MeshLambertMaterial({ color: 0x0284c7 }));
+      blanket.position.set(0, 1.08, 0.45);
+      patientBodyGroup.add(blanket);
+
+      // Upper Torso reclining against pillow
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.75, 0.45), new THREE.MeshLambertMaterial({ color: 0x38bdf8 }));
+      torso.position.set(0, 1.25, -0.85);
+      torso.rotation.x = -0.45;
+      patientBodyGroup.add(torso);
+
+      // Patient Head on Pillow
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), new THREE.MeshLambertMaterial({ color: 0xfbcfe8 }));
+      head.position.set(0, 1.55, -1.25);
+      patientBodyGroup.add(head);
+
+      // Patient Hair
+      const hair = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.2, 0.62), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
+      hair.position.set(0, 1.74, -1.3);
+      patientBodyGroup.add(hair);
+
+      g.add(patientBodyGroup);
+
+      // Floating Glowing Medical Cross / Status Indicator above Bed
+      const pill = new THREE.Mesh(new THREE.OctahedronGeometry(0.45, 0), new THREE.MeshBasicMaterial({ color: 0xf59e0b }));
+      pill.position.set(0, 2.8, 0);
+      g.add(pill);
+
+      // Patient Nameplate Sign on Footboard
+      const tag = makeSignboardMesh(p.name, p.locName, '#0f172a', '#38bdf8', 2.1, 0.55);
+      tag.position.set(0, 1.35, 2.02);
+      g.add(tag);
+
+      g.userData = { pill, patientBodyGroup };
+      worldGroup.add(g);
+      p.mesh = g;
+    }
+    worldPatients.forEach(p => createPatientMesh(p));
+
+    // --- AUTHENTIC DELHI GOVT HOSPITAL SIGNBOARDS, LIGHTING, RECEPTIONIST NPC & VEHICLES ---
+    function buildDelhiHospitalDetails() {
+      // 1. Main Gate Archway Signboard
+      const gateSign = makeSignboardMesh(
+        "राजकीय आयुर्विज्ञान संस्थान एवं चिकित्सालय, नई दिल्ली",
+        "DELHI GOVT. MEDICAL CITY HOSPITAL & COLLEGE",
+        "#0369a1", "#ffffff", 19.5, 2.1
+      );
+      gateSign.position.set(0, 9.1, 116.6);
+      worldGroup.add(gateSign);
+
+      // 2. Main Hospital Building Facade Signboard
+      const mainHospSign = makeSignboardMesh(
+        "राजकुमारी अमृत कौर ओपीडी एवं मुख्य चिकित्सालय भवन",
+        "MAIN OPD, EMERGENCY & INPATIENT WARDS BLOCK",
+        "#0f766e", "#ffffff", 28, 2.6
+      );
+      mainHospSign.position.set(0, 8.8, 20.6);
+      worldGroup.add(mainHospSign);
+
+      // 3. Emergency Red Glowing Signboard
+      const erSign = makeSignboardMesh(
+        "आपातकालीन एवं ट्रॉमा विभाग (24x7)",
+        "EMERGENCY & CASUALTY TRAUMA BAY",
+        "#b91c1c", "#ffffff", 14, 1.8
+      );
+      erSign.position.set(26, 6.2, 20.6);
+      worldGroup.add(erSign);
+
+      // 4. OPD Wing Signboard
+      const opdSign = makeSignboardMesh(
+        "बाह्य रोगी विभाग (ओपीडी कक्ष 1-4)",
+        "OUT-PATIENT DEPARTMENT (OPD ROOMS)",
+        "#1d4ed8", "#ffffff", 14, 1.8
+      );
+      opdSign.position.set(-26, 6.2, 20.6);
+      worldGroup.add(opdSign);
+
+      // 5. Interior Registration Counter Sign & Receptionist NPC
+      const recepSign = makeSignboardMesh(
+        "केंद्रीय पंजीकरण एवं पूछताछ पटल",
+        "RECEPTION & OPD REGISTRATION COUNTER",
+        "#0369a1", "#ffffff", 9.5, 1.3
+      );
+      recepSign.position.set(0, 3.8, 8.8);
+      worldGroup.add(recepSign);
+
+      // Receptionist NPC standing behind desk
+      const recepNPC = new THREE.Group();
+      recepNPC.position.set(0, 0, 7.2);
+      const rTorso = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.25, 0.45), new THREE.MeshLambertMaterial({ color: 0x0d9488 }));
+      rTorso.position.y = 1.65;
+      recepNPC.add(rTorso);
+      const rHead = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), new THREE.MeshLambertMaterial({ color: 0xfbcfe8 }));
+      rHead.position.y = 2.5;
+      recepNPC.add(rHead);
+      const rHair = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.25, 0.66), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
+      rHair.position.set(0, 2.72, -0.05);
+      recepNPC.add(rHair);
+      worldGroup.add(recepNPC);
+
+      // 6. Bright Interior Hospital PointLights so rooms look clean, vivid & realistic at night
+      const interiorLightPositions = [
+        [0, 6.2, 12, 0xffffff, 1.3],     // Reception Atrium
+        [-28, 6.2, 8, 0xfffbeb, 1.2],    // OPD Wing
+        [28, 6.2, 8, 0xfffbeb, 1.2],     // Emergency Wing
+        [0, 6.2, -14, 0xffffff, 1.1],    // Elevator & Rear Corridor
+        [-24, 13.5, -15, 0xfffbeb, 1.2], // 1st Floor General Ward
+        [0, 8.5, 112, 0xfef08a, 1.2]     // Main Gate Arch Light
+      ];
+      interiorLightPositions.forEach(([lx, ly, lz, lcol, lint]) => {
+        const pt = new THREE.PointLight(lcol, lint, 48);
+        pt.position.set(lx, ly, lz);
+        worldGroup.add(pt);
+        // Glowing ceiling tube fixture mesh
+        const tube = new THREE.Mesh(
+          new THREE.BoxGeometry(3.2, 0.12, 0.4),
+          new THREE.MeshBasicMaterial({ color: 0xffffff })
+        );
+        tube.position.set(lx, ly + 0.5, lz);
+        worldGroup.add(tube);
+      });
+
+      // 7. CATS / 102 Delhi Govt Ambulance outside Emergency Gate
+      const amb = new THREE.Group();
+      amb.position.set(28, 0, 32);
+      const ambBody = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.7, 6.8), mats.whiteWall);
+      ambBody.position.y = 1.65;
+      amb.add(ambBody);
+      const ambStripe = new THREE.Mesh(new THREE.BoxGeometry(3.45, 0.55, 6.82), mats.emergencyRed);
+      ambStripe.position.y = 1.5;
+      amb.add(ambStripe);
+      const ambSign = makeSignboardMesh("102 एम्बुलेंस - दिल्ली सरकार", "CATS 102 AMBULANCE", "#b91c1c", "#ffffff", 4.5, 0.8);
+      ambSign.rotation.y = Math.PI / 2;
+      ambSign.position.set(1.75, 2.2, 0);
+      amb.add(ambSign);
+      const beacon = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.32, 0.5), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+      beacon.position.set(0, 3.15, 1.8);
+      amb.add(beacon);
+      worldGroup.add(amb);
+      addBoxCollider(26, 30, 28.5, 35.5);
+
+      // 8. Delhi Green & Yellow CNG Auto-Rickshaw outside Main Gate
+      const auto = new THREE.Group();
+      auto.position.set(-12, 0, 102);
+      const autoBase = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.1, 2.8), new THREE.MeshLambertMaterial({ color: 0x15803d }));
+      autoBase.position.y = 0.8;
+      auto.add(autoBase);
+      const autoTop = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.9, 2.4), new THREE.MeshLambertMaterial({ color: 0xeab308 }));
+      autoTop.position.set(0, 1.8, -0.1);
+      auto.add(autoTop);
+      worldGroup.add(auto);
+      addBoxCollider(-13.2, -10.8, 100.4, 103.6);
+
+      // 9. Jan Aushadhi Kendra Pharmacy Building & Signboard (X = -25, Z = 36)
+      const pharmBldg = new THREE.Group();
+      pharmBldg.position.set(-25, 0, 38);
+      const pBox = new THREE.Mesh(new THREE.BoxGeometry(10, 4.5, 7), mats.whiteWall);
+      pBox.position.y = 2.25;
+      pharmBldg.add(pBox);
+      const pSign = makeSignboardMesh("प्रधानमंत्री जनऔषधि केंद्र", "24x7 GENERIC PHARMACY", "#15803d", "#ffffff", 9.6, 1.2);
+      pSign.position.set(0, 3.8, 3.6);
+      pharmBldg.add(pSign);
+      worldGroup.add(pharmBldg);
+      addBoxCollider(-30.2, -19.8, 34.2, 41.8);
+    }
+    buildDelhiHospitalDetails();
+
+    // --- 3D PLAYER AVATAR ---
+    const playerGroup = new THREE.Group();
+    playerGroup.position.set(0, 0, 95);
+    scene.add(playerGroup);
+
+    let pTorsoMesh, pLegLMesh, pLegRMesh, pStethoscope, pNurseCap, pBackpack;
+
+    function buildPlayerModel() {
+      while(playerGroup.children.length > 0) {
+        playerGroup.remove(playerGroup.children[0]);
+      }
+
+      const legGeo = new THREE.CylinderGeometry(0.13, 0.13, 1.2);
+      const legColor = (state.role === 'nurse' ? 0x38bdf8 : (state.role === 'doctor' ? 0x1e293b : (state.role === 'explorer' ? 0x78350f : 0x1e3a8a)));
+      pLegLMesh = new THREE.Mesh(legGeo, new THREE.MeshLambertMaterial({ color: legColor }));
+      pLegLMesh.position.set(-0.25, 0.6, 0);
+      playerGroup.add(pLegLMesh);
+
+      pLegRMesh = new THREE.Mesh(legGeo, new THREE.MeshLambertMaterial({ color: legColor }));
+      pLegRMesh.position.set(0.25, 0.6, 0);
+      playerGroup.add(pLegRMesh);
+
+      const torsoColor = (state.role === 'doctor' ? 0xffffff : (state.role === 'nurse' ? 0x38bdf8 : (state.role === 'explorer' ? 0x0284c7 : 0xb91c1c)));
+      pTorsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.25, 0.5), new THREE.MeshLambertMaterial({ color: torsoColor }));
+      pTorsoMesh.position.y = 1.8;
+      pTorsoMesh.castShadow = true;
+      playerGroup.add(pTorsoMesh);
+
+      const armGeo = new THREE.CylinderGeometry(0.1, 0.1, 1.1);
+      const armColor = (state.role === 'doctor' ? 0xffffff : (state.role === 'nurse' ? 0x38bdf8 : 0xfbcfe8));
+      playerGroup.armL = new THREE.Mesh(armGeo, new THREE.MeshLambertMaterial({ color: armColor }));
+      playerGroup.armL.position.set(-0.55, 1.7, 0);
+      playerGroup.add(playerGroup.armL);
+
+      playerGroup.armR = new THREE.Mesh(armGeo, new THREE.MeshLambertMaterial({ color: armColor }));
+      playerGroup.armR.position.set(0.55, 1.7, 0);
+      playerGroup.add(playerGroup.armR);
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), new THREE.MeshLambertMaterial({ color: 0xfbcfe8 }));
+      head.position.y = 2.65;
+      playerGroup.add(head);
+
+      const hair = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.22, 0.65), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
+      hair.position.set(0, 2.88, -0.05);
+      playerGroup.add(hair);
+
+      if (state.role === 'doctor') {
+        pStethoscope = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.04, 8, 16), new THREE.MeshBasicMaterial({ color: 0x0284c7 }));
+        pStethoscope.position.set(0, 2.1, 0.26);
+        pStethoscope.rotation.x = Math.PI / 4;
+        playerGroup.add(pStethoscope);
+      }
+      if (state.role === 'nurse') {
+        pNurseCap = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.18, 0.45), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+        pNurseCap.position.set(0, 3.02, 0);
+        playerGroup.add(pNurseCap);
+      }
+      if (state.role === 'explorer') {
+        pBackpack = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.8, 0.35), new THREE.MeshLambertMaterial({ color: 0x7c2d12 }));
+        pBackpack.position.set(0, 1.8, -0.38);
+        playerGroup.add(pBackpack);
+      }
+    }
+    buildPlayerModel();
+
+    // --- CONTROLS & PHYSICS ---
+    const keys = { w: false, a: false, s: false, d: false, shift: false, space: false };
+    const playerPhysics = {
+      velocity: new THREE.Vector3(),
+      speed: 10.0,
+      runSpeed: 20.0,
+      isGrounded: true,
+      jumpForce: 8.5,
+      gravity: -22.0,
+      animCycle: 0
+    };
+
+    const cameraState = {
+      yaw: 0,
+      pitch: 0.22,
+      distance: 8.0,
+      minDistance: 2.5,
+      maxDistance: 15.0,
+      isDragging: false,
+      prevPointerX: 0,
+      prevPointerY: 0
+    };
+
+    window.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || k === 'arrowup') keys.w = true;
+      if (k === 'a' || k === 'arrowleft') keys.a = true;
+      if (k === 's' || k === 'arrowdown') keys.s = true;
+      if (k === 'd' || k === 'arrowright') keys.d = true;
+      if (e.shiftKey) keys.shift = true;
+      if (k === ' ') {
+        if (playerPhysics.isGrounded) {
+          playerPhysics.velocity.y = playerPhysics.jumpForce;
+          playerPhysics.isGrounded = false;
+        }
+      }
+      if (k === 'e') handleInteractionTrigger();
+      if (k === 'm') toggleModal('modal-map');
+      if (k === 'l') toggleLanguage();
+      if (k === 'n') toggleNightShift();
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || k === 'arrowup') keys.w = false;
+      if (k === 'a' || k === 'arrowleft') keys.a = false;
+      if (k === 's' || k === 'arrowdown') keys.s = false;
+      if (k === 'd' || k === 'arrowright') keys.d = false;
+      if (!e.shiftKey) keys.shift = false;
+    });
+
+    window.addEventListener('mousedown', (e) => {
+      if (e.target === renderer.domElement) {
+        cameraState.isDragging = true;
+        cameraState.prevPointerX = e.clientX;
+        cameraState.prevPointerY = e.clientY;
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!cameraState.isDragging) return;
+      const dx = e.clientX - cameraState.prevPointerX;
+      const dy = e.clientY - cameraState.prevPointerY;
+      cameraState.yaw -= dx * 0.005;
+      cameraState.pitch = Math.max(-0.25, Math.min(1.2, cameraState.pitch + dy * 0.004));
+      cameraState.prevPointerX = e.clientX;
+      cameraState.prevPointerY = e.clientY;
+    });
+
+    window.addEventListener('mouseup', () => { cameraState.isDragging = false; });
+    window.addEventListener('wheel', (e) => {
+      cameraState.distance = Math.max(cameraState.minDistance, Math.min(cameraState.maxDistance, cameraState.distance + e.deltaY * 0.01));
+    }, { passive: true });
+
+    // Mobile Joystick
+    const joystickZone = document.getElementById('joystick-zone');
+    const joystickKnob = document.getElementById('joystick-knob');
+    let joystickTouchId = null;
+    let joystickOrigin = { x: 0, y: 0 };
+    const joystickVector = { x: 0, y: 0 };
+
+    joystickZone.addEventListener('touchstart', (e) => {
+      const touch = e.changedTouches[0];
+      joystickTouchId = touch.identifier;
+      const rect = joystickZone.getBoundingClientRect();
+      joystickOrigin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === joystickTouchId) {
+          const dx = touch.clientX - joystickOrigin.x;
+          const dy = touch.clientY - joystickOrigin.y;
+          const dist = Math.min(45, Math.hypot(dx, dy));
+          const angle = Math.atan2(dy, dx);
+          joystickVector.x = (Math.cos(angle) * dist) / 45;
+          joystickVector.y = (Math.sin(angle) * dist) / 45;
+          joystickKnob.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+        } else if (touch.clientX > window.innerWidth / 2) {
+          if (cameraState.touchPrevX !== undefined) {
+            const tdx = touch.clientX - cameraState.touchPrevX;
+            const tdy = touch.clientY - cameraState.touchPrevY;
+            cameraState.yaw -= tdx * 0.007;
+            cameraState.pitch = Math.max(-0.25, Math.min(1.2, cameraState.pitch + tdy * 0.006));
+          }
+          cameraState.touchPrevX = touch.clientX;
+          cameraState.touchPrevY = touch.clientY;
+        }
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchend', (e) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === joystickTouchId) {
+          joystickTouchId = null;
+          joystickVector.x = 0;
+          joystickVector.y = 0;
+          joystickKnob.style.transform = `translate(0px, 0px)`;
+        } else if (touch.clientX > window.innerWidth / 2) {
+          cameraState.touchPrevX = undefined;
+          cameraState.touchPrevY = undefined;
+        }
+      }
+    });
+
+    document.getElementById('m-btn-run').addEventListener('click', () => {
+      keys.shift = !keys.shift;
+      document.getElementById('m-btn-run').style.borderColor = keys.shift ? '#fbbf24' : '#38bdf8';
+    });
+    document.getElementById('m-btn-interact').addEventListener('click', handleInteractionTrigger);
+    document.getElementById('m-btn-jump').addEventListener('click', () => {
+      if (playerPhysics.isGrounded) {
+        playerPhysics.velocity.y = playerPhysics.jumpForce;
+        playerPhysics.isGrounded = false;
+      }
+    });
+    document.getElementById('m-btn-map').addEventListener('click', () => toggleModal('modal-map'));
+
+    function checkWallCollision(newX, newZ, currentY) {
+      const radius = 0.55;
+      for (let c of colliders) {
+        if (currentY >= c.minY && currentY <= c.maxY) {
+          if (newX + radius > c.minX && newX - radius < c.maxX &&
+              newZ + radius > c.minZ && newZ - radius < c.maxZ) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function updateEconomyHUD() {
+      document.getElementById('txt-rev-badge').innerText = `💰 ₹${state.revenue.toLocaleString()}`;
+      document.getElementById('txt-cured-badge').innerText = `🎯 Treated: ${state.patientsTreated} / 10`;
+      document.getElementById('txt-lost-badge').innerText = `🏃 Lost: ${state.patientsLost}`;
+      document.getElementById('txt-trust-badge').innerText = `⭐ Trust: ${state.trust}%`;
+    }
+
+    // --- 3-QUESTION CLINICAL CONSULTATION WITH 2-STRIKE RULE ---
+    function openPatientExam(patient) {
+      audio.playClick();
+      state.currentStrikes = 0;
+      const c = CLINICAL_CASES.find(item => item.id === patient.caseId) || CLINICAL_CASES[0];
+      const modal = document.getElementById('modal-patient-exam');
+
+      renderConsultationStep1(patient, c);
+      modal.style.display = 'flex';
+    }
+
+    function getStrikesDisplayHtml() {
+      const s = state.currentStrikes;
+      const icons = (s === 0 ? "◯ ◯" : (s === 1 ? "❌ ◯" : "❌ ❌"));
+      return `
+        <div class="strike-indicator">
+          <span>Strikes:</span>
+          <span style="font-size:14px;">[ ${icons} ]</span>
+          <span style="font-size:11px; color:#fca5a5;">(2 गलत जवाब पर मरीज भाग जाएगा!)</span>
+        </div>
+      `;
+    }
+
+    // Question 1: Clinical History
+    function renderConsultationStep1(patient, c) {
+      const body = document.getElementById('patient-modal-body');
+      body.innerHTML = `
+        <div class="dept-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <span class="case-badge">${c.dept}</span>
+            ${getStrikesDisplayHtml()}
+          </div>
+          <h3 style="color:#38bdf8; margin:6px 0;">Patient: ${patient.name}</h3>
+          <div style="font-size:12px; color:#94a3b8; margin-bottom:10px;">
+            Location: <em>${patient.locName}</em> • Level: <strong>12th Bio / MBBS 1st Year</strong>
+          </div>
+
+          <div style="background:#0f172a; padding:12px; border-radius:8px; margin:8px 0; border-left:4px solid #38bdf8;">
+            <strong style="color:#fbbf24;">🗣️ Patient Chief Complaint (मरीज की समस्या):</strong>
+            <p style="font-size:14px; color:#f8fafc; margin-top:5px; font-style:italic;">"${currentLang === 'hi' ? c.complaint_hi : c.complaint_en}"</p>
+          </div>
+
+          <div style="background:rgba(2, 132, 199, 0.15); border:1px solid #0284c7; padding:8px 12px; border-radius:6px; margin-top:10px; font-size:12px; color:#bae6fd;">
+            ${state.role === 'nurse'
+              ? '💉 <strong>Staff Nurse Duty:</strong> Check patient vitals chart, verify IV saline line, and record clinical observations (Step 1/3).'
+              : '🩺 <strong>Resident Doctor Duty:</strong> Take clinical history, order diagnostic workup, and confirm final diagnosis (Step 1/3).'}
+          </div>
+          <div style="margin-top:12px;">
+            <h4 style="color:#f59e0b; margin-bottom:8px;">${currentLang === 'hi' ? c.q1.prompt_hi : c.q1.prompt_en}</h4>
+            <div id="q1-opts"></div>
+            <div id="q1-feedback" style="display:none; margin-top:10px; padding:10px; border-radius:6px; font-size:13px;"></div>
+          </div>
+        </div>
+      `;
+
+      const optsContainer = document.getElementById('q1-opts');
+      const options = (currentLang === 'hi' ? c.q1.options_hi : c.q1.options_en);
+
+      options.forEach((optText, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'quiz-option';
+        btn.innerText = (idx + 1) + '. ' + optText;
+        btn.addEventListener('click', () => {
+          handleQ1Answer(patient, c, idx, btn);
+        });
+        optsContainer.appendChild(btn);
+      });
+    }
+
+    function handleQ1Answer(patient, c, idx, optElement) {
+      const fb = document.getElementById('q1-feedback');
+      fb.style.display = 'block';
+
+      if (idx === c.q1.ans) {
+        audio.playClick();
+        optElement.className = 'quiz-option correct';
+        fb.style.background = '#065f46';
+        fb.style.color = '#ecfdf5';
+        fb.innerHTML = `<strong>✅ Sahi Sawal! Correct Clinical Inquiry!</strong><p>Patient reveals key clues. Moving to Question 2...</p>`;
+        setTimeout(() => renderConsultationStep2(patient, c), 1300);
+      } else {
+        audio.playBuzzer();
+        optElement.className = 'quiz-option incorrect';
+        state.currentStrikes += 1;
+        fb.style.background = '#881337';
+        fb.style.color = '#ffe4e6';
+        fb.innerHTML = `<strong>❌ Galat Sawal! Wrong Question! (Strike 1/2)</strong><p>Patient looks confused and annoyed. 1 more wrong answer and patient will flee!</p>`;
+        setTimeout(() => renderConsultationStep2(patient, c), 1600);
+      }
+    }
+
+    // Question 2: Physical Exam & Lab Tests
+    function renderConsultationStep2(patient, c) {
+      const body = document.getElementById('patient-modal-body');
+      body.innerHTML = `
+        <div class="dept-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <span class="case-badge">${c.dept}</span>
+            ${getStrikesDisplayHtml()}
+          </div>
+          <h3 style="color:#38bdf8; margin:6px 0;">Question 2 / 3: Physical & Diagnostic Assessment</h3>
+
+          <div class="dept-stat-grid">
+            <div class="dept-stat"><div class="dept-stat-label">Blood Pressure</div><div class="dept-stat-val">${c.vitals.bp}</div></div>
+            <div class="dept-stat"><div class="dept-stat-label">Heart Rate</div><div class="dept-stat-val">${c.vitals.hr}</div></div>
+            <div class="dept-stat"><div class="dept-stat-label">Respiratory Rate</div><div class="dept-stat-val">${c.vitals.rr}</div></div>
+            <div class="dept-stat"><div class="dept-stat-label">Temperature</div><div class="dept-stat-val">${c.vitals.temp}</div></div>
+            <div class="dept-stat"><div class="dept-stat-label">SpO2</div><div class="dept-stat-val">${c.vitals.spo2}</div></div>
+          </div>
+
+          <div style="margin-top:14px;">
+            <h4 style="color:#f59e0b; margin-bottom:8px;">${currentLang === 'hi' ? c.q2.prompt_hi : c.q2.prompt_en}</h4>
+            <div id="q2-opts"></div>
+            <div id="q2-feedback" style="display:none; margin-top:10px; padding:10px; border-radius:6px; font-size:13px;"></div>
+          </div>
+        </div>
+      `;
+
+      const optsContainer = document.getElementById('q2-opts');
+      const options = (currentLang === 'hi' ? c.q2.options_hi : c.q2.options_en);
+
+      options.forEach((optText, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'quiz-option';
+        btn.innerText = (idx + 1) + '. ' + optText;
+        btn.addEventListener('click', () => {
+          handleQ2Answer(patient, c, idx, btn);
+        });
+        optsContainer.appendChild(btn);
+      });
+    }
+
+    function handleQ2Answer(patient, c, idx, optElement) {
+      const fb = document.getElementById('q2-feedback');
+      fb.style.display = 'block';
+
+      if (idx === c.q2.ans) {
+        audio.playClick();
+        optElement.className = 'quiz-option correct';
+        fb.style.background = '#065f46';
+        fb.style.color = '#ecfdf5';
+        fb.innerHTML = `<strong>✅ Sahi Test! Correct Assessment!</strong><p>${c.lab}</p><p>Advancing to Final Question 3...</p>`;
+        setTimeout(() => renderConsultationStep3(patient, c), 1600);
+      } else {
+        audio.playBuzzer();
+        optElement.className = 'quiz-option incorrect';
+        state.currentStrikes += 1;
+
+        if (state.currentStrikes >= 2) {
+          // 2 STRIKES REACHED: PATIENT FLEES!
+          triggerPatientFlee(patient, fb);
+        } else {
+          fb.style.background = '#881337';
+          fb.style.color = '#ffe4e6';
+          fb.innerHTML = `<strong>❌ Unnecessary Test! (Strike 1/2)</strong><p>Caution! 1 more mistake and patient will flee!</p>`;
+          setTimeout(() => renderConsultationStep3(patient, c), 1600);
+        }
+      }
+    }
+
+    // Question 3: Final Disease Diagnosis & Treatment
+    function renderConsultationStep3(patient, c) {
+      const body = document.getElementById('patient-modal-body');
+      body.innerHTML = `
+        <div class="dept-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <span class="case-badge">${c.dept}</span>
+            ${getStrikesDisplayHtml()}
+          </div>
+          <h3 style="color:#38bdf8; margin:6px 0;">Question 3 / 3: Confirm Disease & Treatment</h3>
+          <p style="font-size:13px; font-weight:600; color:#f8fafc; margin:10px 0;">${currentLang === 'hi' ? c.q3.prompt_hi : c.q3.prompt_en}</p>
+
+          <div id="q3-opts"></div>
+          <div id="q3-outcome" style="display:none; margin-top:12px; padding:12px; border-radius:8px; font-size:13px;"></div>
+        </div>
+      `;
+
+      const optsContainer = document.getElementById('q3-opts');
+      const options = (currentLang === 'hi' ? c.q3.options_hi : c.q3.options_en);
+
+      options.forEach((optText, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'quiz-option';
+        btn.innerText = (idx + 1) + '. ' + optText;
+        btn.addEventListener('click', () => {
+          handleQ3Answer(patient, c, idx, btn);
+        });
+        optsContainer.appendChild(btn);
+      });
+    }
+
+    function handleQ3Answer(patient, c, idx, optElement) {
+      const outcome = document.getElementById('q3-outcome');
+      outcome.style.display = 'block';
+
+      if (idx === c.q3.ans) {
+        // CURED SUCCESSFULLY!
+        audio.playCashChime();
+        optElement.className = 'quiz-option correct';
+        const fee = (c.dept.includes('Emergency') ? 1200 : 500);
+        state.revenue += fee;
+        state.patientsTreated += 1;
+        checkWinCondition();
+        state.trust = Math.min(100, state.trust + 5);
+        updateEconomyHUD();
+
+        outcome.style.background = '#065f46';
+        outcome.style.color = '#ecfdf5';
+        outcome.innerHTML = `
+          <strong>🎉 SUCCESSFUL CURE! (सफल इलाज)</strong>
+          <p style="margin:4px 0;">Patient says: <em>"Thank you Doctor Sahab! Aapka bahut-bahut shukriya!"</em></p>
+          <div style="font-weight:bold; color:#a7f3d0; margin-top:6px;">💰 Paid ₹${fee} Consultation Fees deposited into Hospital Revenue!</div>
+          <p style="margin-top:6px; font-size:12px;"><strong>Teaching Point:</strong> ${currentLang === 'hi' ? c.q3.explanation_hi : c.q3.explanation_en}</p>
+        `;
+
+        patient.isExamined = true;
+        showNotification(currentLang === 'hi' ? `इलाज सफल! +₹${fee} अस्पताल आय! नया मरीज आ रहा है।` : `Cured! +₹${fee} Revenue! Next patient arriving.`);
+
+        setTimeout(() => {
+          const nextCaseId = (c.id % CLINICAL_CASES.length) + 1;
+          patient.caseId = nextCaseId;
+          const newCase = CLINICAL_CASES.find(m => m.id === nextCaseId);
+          patient.name = `${newCase.patient.name} (${newCase.patient.age}y ${newCase.patient.gender})`;
+          patient.dialog_en = newCase.complaint_en;
+          patient.dialog_hi = newCase.complaint_hi;
+          patient.isExamined = false;
+          showNotification(currentLang === 'hi' ? `नया मरीज पहुंचा: ${patient.name}` : `New Patient Arrived: ${patient.name}`);
+        }, 4000);
+
+      } else {
+        // 2ND STRIKE: PATIENT FLEES!
+        state.currentStrikes += 1;
+        triggerPatientFlee(patient, outcome);
+      }
+    }
+
+    function triggerPatientFlee(patient, containerElement) {
+      audio.playBuzzer();
+      state.patientsLost += 1;
+      state.trust = Math.max(10, state.trust - 15);
+      updateEconomyHUD();
+
+      containerElement.style.background = '#881337';
+      containerElement.style.color = '#ffe4e6';
+      containerElement.innerHTML = `
+        <strong>🚨 2 GALAT JAWAB! PATIENT FLED! (मरीज अस्पताल छोड़कर भाग गया!)</strong>
+        <p style="margin:6px 0;">Patient yells: <em>"Aap bilkul galat ilaj kar rahe hain! Meri jaan khatre me pad jayegi! Main dusre hospital ja raha hoon!"</em></p>
+        <div style="font-weight:bold; color:#fca5a5; margin-top:6px;">❌ ₹0 Fees collected. Hospital Trust dropped to ${state.trust}%.</div>
+      `;
+
+      patient.isRunningAway = true;
+      showNotification(currentLang === 'hi' ? `मरीज नाराज होकर भाग गया! 0 फीस मिली।` : `2 Wrong Answers! Patient fled to another hospital!`);
+
+      setTimeout(() => {
+        patient.isRunningAway = false;
+        patient.x = (patient.id === 1 ? -28 : (patient.id === 2 ? 26 : (patient.id === 3 ? -28 : (patient.id === 4 ? -12 : (patient.id === 5 ? 75 : -36)))));
+        patient.z = (patient.id === 1 ? 12 : (patient.id === 2 ? 10 : (patient.id === 3 ? -15 : (patient.id === 4 ? 12 : (patient.id === 5 ? -15 : 12)))));
+        if (patient.mesh) {
+          patient.mesh.position.set(patient.x, patient.y, patient.z);
+        }
+        const nextCaseId = (patient.caseId % CLINICAL_CASES.length) + 1;
+        patient.caseId = nextCaseId;
+        const newCase = CLINICAL_CASES.find(m => m.id === nextCaseId);
+        patient.name = `${newCase.patient.name} (${newCase.patient.age}y ${newCase.patient.gender})`;
+        patient.dialog_en = newCase.complaint_en;
+        patient.dialog_hi = newCase.complaint_hi;
+        patient.isExamined = false;
+        showNotification(currentLang === 'hi' ? `नया मरीज प्रतीक्षा कक्ष में पहुंचा: ${patient.name}` : `New Patient Arrived: ${patient.name}`);
+      }, 5000);
+    }
+
+    document.getElementById('btn-close-exam').addEventListener('click', () => { document.getElementById('modal-patient-exam').style.display = 'none'; });
+    document.getElementById('btn-close-exam-footer').addEventListener('click', () => { document.getElementById('modal-patient-exam').style.display = 'none'; });
+
+    // --- INTERACTIVE PATHOLOGY LAB SCREEN ---
+    const microCanvas = document.getElementById('microscope-canvas');
+    const mctx = microCanvas.getContext('2d');
+
+    function drawBloodSmear(type='normal') {
+      mctx.fillStyle = '#0f172a';
+      mctx.fillRect(0, 0, 600, 240);
+
+      // Microscope Circular Field of View
+      mctx.save();
+      mctx.beginPath();
+      mctx.arc(300, 120, 110, 0, Math.PI * 2);
+      mctx.clip();
+      mctx.fillStyle = '#fce7f3'; // Light eosin stained field
+      mctx.fillRect(180, 0, 240, 240);
+
+      // Draw Red Blood Cells
+      const count = (type === 'anemia' ? 28 : 55);
+      const rbcRadius = (type === 'anemia' ? 6 : 8.5);
+
+      for (let i = 0; i < count; i++) {
+        const rx = 210 + (i * 37) % 180;
+        const ry = 30 + (i * 43) % 180;
+
+        mctx.fillStyle = '#f43f5e';
+        mctx.beginPath();
+        mctx.arc(rx, ry, rbcRadius, 0, Math.PI * 2);
+        mctx.fill();
+
+        // Central Pallor
+        mctx.fillStyle = '#fce7f3';
+        mctx.beginPath();
+        const pallorR = (type === 'anemia' ? rbcRadius * 0.75 : rbcRadius * 0.35);
+        mctx.arc(rx, ry, pallorR, 0, Math.PI * 2);
+        mctx.fill();
+      }
+
+      // Draw Platelets
+      const pltCount = (type === 'dengue' ? 3 : 24);
+      mctx.fillStyle = '#8b5cf6';
+      for (let j = 0; j < pltCount; j++) {
+        const px = 205 + (j * 29) % 190;
+        const py = 25 + (j * 31) % 190;
+        mctx.beginPath();
+        mctx.arc(px, py, 2.2, 0, Math.PI * 2);
+        mctx.fill();
+      }
+
+      // Draw Leukocyte (WBC)
+      const wbcCount = (type === 'infection' ? 6 : 2);
+      for (let w = 0; w < wbcCount; w++) {
+        const wx = 240 + w * 40;
+        const wy = 100 + (w % 2) * 40;
+        mctx.fillStyle = '#6366f1';
+        mctx.beginPath();
+        mctx.arc(wx, wy, 14, 0, Math.PI * 2);
+        mctx.fill();
+        // Multi-lobed nucleus
+        mctx.fillStyle = '#312e81';
+        mctx.beginPath();
+        mctx.arc(wx - 4, wy - 3, 5, 0, Math.PI * 2);
+        mctx.arc(wx + 4, wy + 2, 5, 0, Math.PI * 2);
+        mctx.fill();
+      }
+
+      mctx.restore();
+
+      // Border Ring
+      mctx.strokeStyle = '#38bdf8';
+      mctx.lineWidth = 4;
+      mctx.beginPath();
+      mctx.arc(300, 120, 110, 0, Math.PI * 2);
+      mctx.stroke();
+
+      const titleEl = document.getElementById('lab-smear-title');
+      const descEl = document.getElementById('lab-smear-desc');
+
+      if (type === 'normal') {
+        titleEl.innerText = "Normal Peripheral Blood Smear (100x)";
+        descEl.innerText = "Normocytic normochromic RBCs with 1/3rd central pallor. Platelet count 250,000 /µL.";
+      } else if (type === 'anemia') {
+        titleEl.innerText = "Microcytic Hypochromic Smear (Iron Deficiency)";
+        descEl.innerText = "Significantly reduced RBC diameter (<6 µm) and enlarged central pallor (>70%). Low Hemoglobin (8.2 g/dL).";
+      } else if (type === 'dengue') {
+        titleEl.innerText = "Thrombocytopenia Smear (Dengue Viral Fever)";
+        descEl.innerText = "Critical paucity of platelets (<70,000 /µL) with normal erythrocyte morphology. Risk of bleeding.";
+      } else {
+        titleEl.innerText = "Neutrophilic Leukocytosis (Bacterial Infection)";
+        descEl.innerText = "Elevated white blood cell count (>14,000 /µL) with prominent multi-lobed band neutrophils.";
+      }
+    }
+
+    document.getElementById('btn-open-pathology').addEventListener('click', () => {
+      drawBloodSmear('normal');
+      toggleModal('modal-pathology');
+    });
+    document.getElementById('smear-tab-normal').addEventListener('click', () => drawBloodSmear('normal'));
+    document.getElementById('smear-tab-anemia').addEventListener('click', () => drawBloodSmear('anemia'));
+    document.getElementById('smear-tab-dengue').addEventListener('click', () => drawBloodSmear('dengue'));
+    document.getElementById('smear-tab-infection').addEventListener('click', () => drawBloodSmear('infection'));
+    document.getElementById('btn-close-pathology').addEventListener('click', () => { document.getElementById('modal-pathology').style.display = 'none'; });
+    document.getElementById('btn-close-pathology-footer').addEventListener('click', () => { document.getElementById('modal-pathology').style.display = 'none'; });
+
+    // --- 20 CASES DIRECTORY BROWSER ---
+    function renderCasesDirectory() {
+      const body = document.getElementById('cases-modal-body');
+      document.getElementById('btn-back-cases').style.display = 'none';
+      body.innerHTML = `
+        <p style="color:#94a3b8; font-size:12px; margin-bottom:12px;">
+          ${currentLang === 'hi' ? '12वीं जीवविज्ञान एवं एमबीबीएस प्रथम वर्ष के प्रमुख नैदानिक मामले:' : 'Core clinical cases for 12th Biology & MBBS 1st Year:'}
+        </p>
+        <div id="cases-scroll-list"></div>
+      `;
+      const listEl = document.getElementById('cases-scroll-list');
+      CLINICAL_CASES.forEach((c) => {
+        const isSolved = state.solvedCases.includes(c.id);
+        const item = document.createElement('button');
+        item.className = 'case-item-btn';
+        item.innerHTML = `
+          <div>
+            <span class="case-badge">${c.dept}</span>
+            <div style="font-weight:600; color:#f8fafc;">Case ${c.id}: ${currentLang === 'hi' ? c.title_hi : c.title_en}</div>
+            <div style="font-size:11px; color:#94a3b8;">${c.patient.name}, ${c.patient.age}y ${c.patient.gender} • ${c.patient.location}</div>
+          </div>
+          <span>${isSolved ? '✅ Treated' : '📖 Study'}</span>
+        `;
+        item.addEventListener('click', () => viewSingleCaseInDirectory(c));
+        listEl.appendChild(item);
+      });
+    }
+
+    function viewSingleCaseInDirectory(c) {
+      audio.playClick();
+      const body = document.getElementById('cases-modal-body');
+      document.getElementById('btn-back-cases').style.display = 'inline-flex';
+
+      body.innerHTML = `
+        <div class="dept-card">
+          <span class="case-badge">${c.dept}</span>
+          <h3 style="color:#38bdf8; margin:6px 0;">Case ${c.id}: ${currentLang === 'hi' ? c.title_hi : c.title_en}</h3>
+          <div style="font-size:12px; color:#94a3b8; margin-bottom:8px;">
+            Patient: <strong>${c.patient.name}</strong> (${c.patient.occupation})
+          </div>
+
+          <div style="background:#0f172a; padding:10px; border-radius:6px; margin:8px 0;">
+            <strong style="color:#fbbf24;">Symptoms & Presentation:</strong>
+            <p style="font-size:13px; color:#e2e8f0; margin-top:2px;">"${currentLang === 'hi' ? c.complaint_hi : c.complaint_en}"</p>
+          </div>
+
+          <div class="dept-stat-grid">
+            <div class="dept-stat"><div class="dept-stat-label">Blood Pressure</div><div class="dept-stat-val">${c.vitals.bp}</div></div>
+            <div class="dept-stat"><div class="dept-stat-label">Heart Rate</div><div class="dept-stat-val">${c.vitals.hr}</div></div>
+            <div class="dept-stat"><div class="dept-stat-label">Respiratory Rate</div><div class="dept-stat-val">${c.vitals.rr}</div></div>
+            <div class="dept-stat"><div class="dept-stat-label">Temperature</div><div class="dept-stat-val">${c.vitals.temp}</div></div>
+            <div class="dept-stat"><div class="dept-stat-label">SpO2</div><div class="dept-stat-val">${c.vitals.spo2}</div></div>
+          </div>
+
+          <div style="background:#0f172a; padding:10px; border-radius:6px; margin:8px 0;">
+            <strong style="color:#38bdf8;">Key Lab Report:</strong>
+            <p style="font-size:13px; color:#cbd5e1; margin-top:2px;">${c.lab}</p>
+          </div>
+
+          <div style="margin-top:10px; padding:10px; background:#065f46; border-radius:6px; color:#ecfdf5; font-size:12px;">
+            <strong>Teaching Point:</strong> ${currentLang === 'hi' ? c.q3.explanation_hi : c.q3.explanation_en}
+          </div>
+        </div>
+      `;
+    }
+
+    document.getElementById('btn-open-cases').addEventListener('click', () => {
+      renderCasesDirectory();
+      toggleModal('modal-cases');
+    });
+    document.getElementById('btn-back-cases').addEventListener('click', renderCasesDirectory);
+    document.getElementById('btn-close-cases').addEventListener('click', () => { document.getElementById('modal-cases').style.display = 'none'; });
+    document.getElementById('btn-close-cases-footer').addEventListener('click', () => { document.getElementById('modal-cases').style.display = 'none'; });
+
+    // --- DEPARTMENT INTERFACE MODAL ---
+    function openDepartmentModal(titleText, contentHtml) {
+      audio.playClick();
+      document.getElementById('dept-modal-title').innerText = titleText;
+      document.getElementById('dept-modal-body').innerHTML = contentHtml;
+      document.getElementById('modal-dept').style.display = 'flex';
+    }
+
+    document.getElementById('btn-close-dept').addEventListener('click', () => { document.getElementById('modal-dept').style.display = 'none'; });
+    document.getElementById('btn-dept-cancel').addEventListener('click', () => { document.getElementById('modal-dept').style.display = 'none'; });
+    document.getElementById('btn-dept-action').addEventListener('click', () => { document.getElementById('modal-dept').style.display = 'none'; });
+
+    window.issueToken = function(dept) {
+      audio.playClick();
+      const num = Math.floor(100 + Math.random() * 899);
+      const disp = document.getElementById('token-disp');
+      if (disp) {
+        disp.style.display = 'block';
+        document.getElementById('token-num').innerText = 'MC-' + num + ' (' + dept + ')';
+      }
+    };
+
+    // --- WORKING ELEVATOR ---
+    function useHospitalElevator(targetFloor) {
+      audio.playElevatorChime();
+      showNotification(currentLang === 'hi' ? `लिफ्ट मंजिल ${targetFloor === 0 ? 'भूतल (Ground)' : 'प्रथम तल (1st Floor)'} पर जा रही है...` : `Elevator ascending/descending to Floor ${targetFloor === 0 ? 'Ground' : '1'}...`);
+      setTimeout(() => {
+        state.currentFloor = targetFloor;
+        const targetY = (targetFloor === 0 ? 0 : 7.5);
+        playerGroup.position.set(0, targetY, -16);
+        document.getElementById('txt-current-floor').innerText = (targetFloor === 0 ? 'G' : '1');
+        audio.playElevatorChime();
+        showNotification(currentLang === 'hi' ? `मंजिल ${targetFloor === 0 ? 'भूतल' : 'प्रथम तल'} पर पहुंचे।` : `Arrived at Floor ${targetFloor === 0 ? 'Ground' : '1'}.`);
+      }, 1400);
+    }
+
+    // --- RADIOLOGY DIGITAL LIGHTBOX CANVAS VIEWER ---
+    const xrayCanvas = document.getElementById('xray-canvas');
+    const xctx = xrayCanvas.getContext('2d');
+
+    function drawXRayScan(type='chest') {
+      xctx.fillStyle = '#050a14';
+      xctx.fillRect(0, 0, 512, 256);
+
+      if (type === 'chest') {
+        xctx.fillStyle = '#ffffff';
+        xctx.fillRect(250, 20, 12, 200);
+        xctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        xctx.lineWidth = 4;
+        for (let r = 50; r <= 190; r += 24) {
+          xctx.beginPath();
+          xctx.arc(200, r, 50, 0.2, Math.PI - 0.2);
+          xctx.stroke();
+          xctx.beginPath();
+          xctx.arc(312, r, 50, 0.2, Math.PI - 0.2);
+          xctx.stroke();
+        }
+        xctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        xctx.beginPath();
+        xctx.ellipse(275, 145, 45, 35, Math.PI / 6, 0, Math.PI * 2);
+        xctx.fill();
+
+        xctx.fillStyle = 'rgba(10, 20, 30, 0.9)';
+        xctx.beginPath();
+        xctx.ellipse(190, 115, 38, 55, 0, 0, Math.PI * 2);
+        xctx.fill();
+        xctx.beginPath();
+        xctx.ellipse(322, 115, 34, 55, 0, 0, Math.PI * 2);
+        xctx.fill();
+
+        document.getElementById('rad-scan-title').innerText = "Chest Radiograph: Posteroanterior (PA) View";
+        document.getElementById('rad-scan-notes').innerText = "Normal cardiothoracic ratio, clear bilateral costophrenic recesses, normal pulmonary vasculature.";
+      } else if (type === 'brain') {
+        xctx.strokeStyle = '#ffffff';
+        xctx.lineWidth = 8;
+        xctx.beginPath();
+        xctx.ellipse(256, 128, 90, 110, 0, 0, Math.PI * 2);
+        xctx.stroke();
+
+        xctx.fillStyle = 'rgba(180, 180, 190, 0.35)';
+        xctx.fill();
+
+        xctx.fillStyle = '#050a14';
+        xctx.beginPath();
+        xctx.ellipse(240, 120, 12, 28, 0.2, 0, Math.PI * 2);
+        xctx.fill();
+        xctx.beginPath();
+        xctx.ellipse(272, 120, 12, 28, -0.2, 0, Math.PI * 2);
+        xctx.fill();
+
+        document.getElementById('rad-scan-title').innerText = "Brain Computed Tomography (CT): Axial Slice";
+        document.getElementById('rad-scan-notes').innerText = "Symmetric cerebral hemispheres, midline structures intact, no intracranial hemorrhage or mass effect.";
+      } else {
+        xctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        xctx.fillRect(230, 20, 52, 90);
+        xctx.fillRect(220, 140, 72, 95);
+        xctx.beginPath();
+        xctx.ellipse(200, 110, 14, 24, 0, 0, Math.PI * 2);
+        xctx.fill();
+
+        document.getElementById('rad-scan-title').innerText = "Knee Joint Radiograph: Lateral Projection";
+        document.getElementById('rad-scan-notes').innerText = "Preserved tibiofemoral joint space, smooth articular margins, no joint effusion or cortical fracture.";
+      }
+    }
+
+    document.getElementById('btn-open-radiology').addEventListener('click', () => {
+      drawXRayScan('chest');
+      toggleModal('modal-radiology');
+    });
+    document.getElementById('rad-tab-chest').addEventListener('click', () => drawXRayScan('chest'));
+    document.getElementById('rad-tab-brain').addEventListener('click', () => drawXRayScan('brain'));
+    document.getElementById('rad-tab-knee').addEventListener('click', () => drawXRayScan('knee'));
+    document.getElementById('btn-close-rad').addEventListener('click', () => { document.getElementById('modal-radiology').style.display = 'none'; });
+    document.getElementById('btn-close-rad-footer').addEventListener('click', () => { document.getElementById('modal-radiology').style.display = 'none'; });
+
+    // --- ICU MONITOR CANVAS ANIMATION ---
+    const icuCanvas = document.getElementById('icu-monitor-canvas');
+    const ictx = icuCanvas.getContext('2d');
+    let ecgX = 0;
+
+    function renderICUMonitor() {
+      ictx.fillStyle = 'rgba(2, 6, 23, 0.08)';
+      ictx.fillRect(0, 0, 600, 180);
+
+      ictx.strokeStyle = 'rgba(5, 150, 105, 0.15)';
+      ictx.lineWidth = 1;
+      for (let x = 0; x < 600; x += 30) {
+        ictx.beginPath(); ictx.moveTo(x, 0); ictx.lineTo(x, 180); ictx.stroke();
+      }
+      for (let y = 0; y < 180; y += 30) {
+        ictx.beginPath(); ictx.moveTo(0, y); ictx.lineTo(600, y); ictx.stroke();
+      }
+
+      const cycle = ecgX % 90;
+      let waveY = 80;
+      if (cycle >= 20 && cycle < 28) waveY = 74;
+      else if (cycle === 38) waveY = 88;
+      else if (cycle === 40) { waveY = 22; /* no background repeating sound */ }
+      else if (cycle === 42) waveY = 96;
+      else if (cycle >= 54 && cycle < 66) waveY = 70;
+
+      ictx.fillStyle = '#34d399';
+      ictx.fillRect(ecgX, waveY, 3, 3);
+      ecgX = (ecgX + 2) % 600;
+    }
+
+    document.getElementById('btn-open-icu-screen').addEventListener('click', () => {
+      toggleModal('modal-icu');
+    });
+    document.getElementById('btn-close-icu').addEventListener('click', () => { document.getElementById('modal-icu').style.display = 'none'; });
+    document.getElementById('btn-close-icu-footer').addEventListener('click', () => { document.getElementById('modal-icu').style.display = 'none'; });
+
+    // --- FULL CAMPUS BLUEPRINT MAP ---
+    const campusZones = [
+      { id: 'entrance', name_en: 'Main Campus Gate', name_hi: 'मुख्य अस्पताल गेट', x: 0, z: 95, floor: 0 },
+      { id: 'reception', name_en: 'Reception Desk', name_hi: 'रिसेप्शन काउंटर', x: 0, z: 10, floor: 0 },
+      { id: 'opd', name_en: 'OPD Consultation Room 1', name_hi: 'ओपीडी परामर्श कक्ष 1', x: -28, z: 12, floor: 0 },
+      { id: 'emergency', name_en: 'Emergency Trauma Bay', name_hi: 'आपातकालीन ट्रॉमा बे', x: 26, z: 12, floor: 0 },
+      { id: 'elevator', name_en: 'Stretcher Elevator', name_hi: 'अस्पताल लिफ्ट', x: 0, z: -16, floor: 0 },
+      { id: 'icu', name_en: 'ICU Simulation Suite', name_hi: 'आईसीयू सुइट', x: -20, z: -15, floor: 0 },
+      { id: 'ot', name_en: 'Operation Theatre', name_hi: 'ऑपरेशन थिएटर', x: 20, z: -15, floor: 0 },
+      { id: 'wards', name_en: 'General Inpatient Ward', name_hi: 'जनरल वार्ड (प्रथम तल)', x: -25, z: -12, floor: 1 },
+      { id: 'nursing', name_en: 'Central Nursing Station', name_hi: 'नर्सिंग स्टेशन', x: 0, z: -10, floor: 1 },
+      { id: 'pathology', name_en: 'Pathology Lab', name_hi: 'पैथोलॉजी प्रयोगशाला', x: 75, z: -15, floor: 0 },
+      { id: 'radiology', name_en: 'Radiology / MRI', name_hi: 'रेडियोलॉजी / एमआरआई', x: 75, z: 5, floor: 0 },
+      { id: 'pharmacy', name_en: 'Jan Aushadhi Pharmacy', name_hi: 'जन औषधि फार्मेसी', x: -25, z: 25, floor: 0 },
+      { id: 'canteen', name_en: 'Hospital Canteen', name_hi: 'कैंटीन एवं जलपान', x: -75, z: 50, floor: 0 },
+      { id: 'garden', name_en: 'Healing Garden', name_hi: 'आरोग्य उद्यान', x: 0, z: 60, floor: 0 }
+    ];
+
+    function renderMapGrid(selectedFloor=0) {
+      const grid = document.getElementById('campus-map-grid');
+      grid.innerHTML = '';
+      campusZones.filter(z => z.floor === selectedFloor).forEach(z => {
+        const chip = document.createElement('div');
+        chip.className = 'map-dept-chip';
+        chip.innerHTML = `
+          <div class="map-chip-title">${currentLang === 'hi' ? z.name_hi : z.name_en}</div>
+          <div class="map-chip-sub">Floor: ${z.floor === 0 ? 'G' : '1'} | Fast Travel ⚡</div>
+        `;
+        chip.addEventListener('click', () => {
+          playerGroup.position.set(z.x, z.floor === 0 ? 0 : 7.5, z.z);
+          state.currentFloor = z.floor;
+          document.getElementById('txt-current-floor').innerText = (z.floor === 0 ? 'G' : '1');
+          document.getElementById('modal-map').style.display = 'none';
+          showNotification(currentLang === 'hi' ? `पहुंचे: ${z.name_hi}` : `Navigated to: ${z.name_en}`);
+        });
+        grid.appendChild(chip);
+      });
+    }
+
+    document.getElementById('tab-map-g').addEventListener('click', () => {
+      document.getElementById('tab-map-g').className = 'map-tab-btn active';
+      document.getElementById('tab-map-1').className = 'map-tab-btn';
+      renderMapGrid(0);
+    });
+    document.getElementById('tab-map-1').addEventListener('click', () => {
+      document.getElementById('tab-map-1').className = 'map-tab-btn active';
+      document.getElementById('tab-map-g').className = 'map-tab-btn';
+      renderMapGrid(1);
+    });
+    document.getElementById('btn-open-map').addEventListener('click', () => {
+      renderMapGrid(0);
+      toggleModal('modal-map');
+    });
+    document.getElementById('minimap-wrapper').addEventListener('click', () => {
+      renderMapGrid(0);
+      toggleModal('modal-map');
+    });
+    document.getElementById('btn-close-map').addEventListener('click', () => { document.getElementById('modal-map').style.display = 'none'; });
+    document.getElementById('btn-close-map-footer').addEventListener('click', () => { document.getElementById('modal-map').style.display = 'none'; });
+
+    // --- ROLE & WARDROBE SELECTION ---
+    document.getElementById('btn-open-role').addEventListener('click', () => toggleModal('modal-role'));
+    document.getElementById('btn-close-role').addEventListener('click', () => { document.getElementById('modal-role').style.display = 'none'; });
+    document.getElementById('btn-close-role-footer').addEventListener('click', () => { document.getElementById('modal-role').style.display = 'none'; });
+
+    function setRole(newRole) {
+      audio.playClick();
+      state.role = newRole;
+      buildPlayerModel();
+      document.getElementById('modal-role').style.display = 'none';
+
+      const roleBadge = document.getElementById('txt-role-badge');
+      if (newRole === 'doctor') roleBadge.innerText = (currentLang === 'hi' ? 'चिकित्सक (DOCTOR)' : 'DOCTOR');
+      else if (newRole === 'nurse') roleBadge.innerText = (currentLang === 'hi' ? 'स्टाफ नर्स (NURSE)' : 'NURSE');
+      else if (newRole === 'explorer') roleBadge.innerText = (currentLang === 'hi' ? 'छात्र (STUDENT)' : 'STUDENT');
+      else roleBadge.innerText = (currentLang === 'hi' ? 'आगंतुक (VISITOR)' : 'VISITOR');
+
+      showNotification(currentLang === 'hi' ? `पोशाक एवं भूमिका बदली गई: ${roleBadge.innerText}` : `Attire & Role changed to: ${newRole.toUpperCase()}`);
+    }
+
+    document.getElementById('role-opt-doctor').addEventListener('click', () => setRole('doctor'));
+    document.getElementById('role-opt-nurse').addEventListener('click', () => setRole('nurse'));
+    document.getElementById('role-opt-explorer').addEventListener('click', () => setRole('explorer'));
+    document.getElementById('role-opt-visitor').addEventListener('click', () => setRole('visitor'));
+
+    // --- SETTINGS MODAL ---
+    document.getElementById('btn-open-settings').addEventListener('click', () => toggleModal('modal-settings'));
+    document.getElementById('btn-close-settings').addEventListener('click', () => { document.getElementById('modal-settings').style.display = 'none'; });
+    document.getElementById('btn-close-settings-footer').addEventListener('click', () => { document.getElementById('modal-settings').style.display = 'none'; });
+
+    document.getElementById('chk-audio').addEventListener('change', (e) => state.audioEnabled = e.target.checked);
+    document.getElementById('chk-shadows').addEventListener('change', (e) => renderer.shadowMap.enabled = e.target.checked);
+    document.getElementById('chk-touch-controls').addEventListener('change', (e) => {
+      document.getElementById('mobile-controls').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    document.getElementById('btn-save-progress').addEventListener('click', () => {
+      audio.playClick();
+      try {
+        localStorage.setItem('medical_city_save_v4', JSON.stringify({
+          role: state.role,
+          revenue: state.revenue,
+          treated: state.patientsTreated,
+          lost: state.patientsLost,
+          trust: state.trust,
+          solvedCases: state.solvedCases
+        }));
+        showNotification(currentLang === 'hi' ? 'प्रोग्रेस सेव हो गई!' : 'Game Progress Saved!');
+      } catch(e) {
+        showNotification('Saved to memory.');
+      }
+      document.getElementById('modal-settings').style.display = 'none';
+    });
+
+    // --- LANGUAGE & NIGHT SHIFT TOGGLES ---
+    function toggleLanguage() {
+      audio.playClick();
+      currentLang = (currentLang === 'en' ? 'hi' : 'en');
+      const loc = LOCALES[currentLang];
+      document.getElementById('txt-hosp-name').innerText = loc.hospName;
+      document.getElementById('lbl-location').innerText = loc.zone;
+      document.getElementById('lbl-floor').innerText = loc.floor;
+      document.getElementById('lbl-mission-head').innerText = loc.missionHead;
+      document.getElementById('txt-btn-lang').innerText = (currentLang === 'en' ? 'हिन्दी' : 'English');
+      document.getElementById('txt-mission-desc').innerText = loc.mission1;
+      showNotification(currentLang === 'hi' ? 'भाषा बदलकर हिन्दी की गई।' : 'Language changed to English.');
+    }
+    document.getElementById('btn-toggle-lang').addEventListener('click', toggleLanguage);
+
+    function toggleNightShift() {
+      audio.playClick();
+      state.isNight = !state.isNight;
+      const btn = document.getElementById('txt-btn-time');
+
+      if (state.isNight) {
+        scene.background.setHex(0x050a14);
+        scene.fog.color.setHex(0x050a14);
+        ambientLight.intensity = 0.28;
+        sunLight.intensity = 0.22;
+        sunLight.color.setHex(0x38bdf8);
+        btn.innerText = (currentLang === 'hi' ? "दिन का दृश्य" : "Day Mode");
+        showNotification(currentLang === 'hi' ? 'रात्रि शिफ्ट सक्रिय (Night Shift Active) - आपातकालीन मरीज तैयार हैं।' : 'Hospital Night Shift Active.');
+      } else {
+        scene.background.setHex(0x93c5fd);
+        scene.fog.color.setHex(0x93c5fd);
+        ambientLight.intensity = 0.7;
+        sunLight.intensity = 0.95;
+        sunLight.color.setHex(0xfffbeb);
+        btn.innerText = (currentLang === 'hi' ? "रात्रि मोड" : "Night Mode");
+        showNotification(currentLang === 'hi' ? 'दिन की शिफ्ट सक्रिय।' : 'Daylight Shift Active.');
+      }
+    }
+    document.getElementById('btn-toggle-time').addEventListener('click', toggleNightShift);
+
+    function toggleModal(id) {
+      audio.playClick();
+      const el = document.getElementById(id);
+      el.style.display = (el.style.display === 'flex' ? 'none' : 'flex');
+    }
+
+    function showNotification(msg) {
+      const b = document.getElementById('notification-banner');
+      b.innerText = msg;
+      b.style.display = 'block';
+      setTimeout(() => { b.style.display = 'none'; }, 2800);
+    }
+
+    // --- PROXIMITY INTERACTION HANDLER ---
+    function handleInteractionTrigger() {
+      if (!state.activeTarget) return;
+
+      if (state.activeTarget.type === 'patient') {
+        openPatientExam(state.activeTarget.data);
+      } else if (state.activeTarget.type === 'elevator') {
+        const nextF = (state.currentFloor === 0 ? 1 : 0);
+        useHospitalElevator(nextF);
+      } else if (state.activeTarget.type === 'reception') {
+        openDepartmentModal(
+          currentLang === 'hi' ? 'केंद्रीय रिसेप्शन एवं टोकन पंजीकरण' : 'Central Reception & Token Registration',
+          `<div class="dept-card">
+            <h4>${currentLang === 'hi' ? 'ओपीडी पर्चा बनाएं:' : 'Generate OPD Patient Token:'}</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+              <button class="btn-icon" onclick="issueToken('General Medicine')">General Medicine</button>
+              <button class="btn-icon" onclick="issueToken('General Surgery')">General Surgery</button>
+              <button class="btn-icon" onclick="issueToken('Pediatrics')">Pediatrics</button>
+              <button class="btn-icon" onclick="issueToken('Orthopedics')">Orthopedics</button>
+            </div>
+            <div id="token-disp" style="display:none; margin-top:10px; padding:10px; background:#0f172a; border-radius:6px;">
+              <strong style="color:#34d399;">Token Generated:</strong>
+              <div id="token-num" style="font-size:20px; font-weight:bold; color:#f8fafc;"></div>
+            </div>
+          </div>`
+        );
+      }
+    }
+
+    // --- MINIMAP RADAR ---
+    const miniCanvas = document.getElementById('minimap-canvas');
+    const miniCtx = miniCanvas.getContext('2d');
+
+    function drawMinimap() {
+      miniCtx.clearRect(0, 0, 160, 160);
+      miniCtx.fillStyle = '#0f172a';
+      miniCtx.beginPath();
+      miniCtx.arc(80, 80, 78, 0, Math.PI * 2);
+      miniCtx.fill();
+
+      miniCtx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      miniCtx.lineWidth = 1;
+      miniCtx.beginPath();
+      miniCtx.arc(80, 80, 30, 0, Math.PI * 2);
+      miniCtx.arc(80, 80, 60, 0, Math.PI * 2);
+      miniCtx.stroke();
+
+      const scale = 0.55;
+      worldPatients.forEach(p => {
+        const dx = (p.x - playerGroup.position.x) * scale;
+        const dz = (p.z - playerGroup.position.z) * scale;
+        if (Math.hypot(dx, dz) < 70) {
+          miniCtx.fillStyle = p.isExamined ? '#34d399' : (p.isRunningAway ? '#f43f5e' : '#f59e0b');
+          miniCtx.beginPath();
+          miniCtx.arc(80 + dx, 80 + dz, 4, 0, Math.PI * 2);
+          miniCtx.fill();
+        }
+      });
+
+      miniCtx.save();
+      miniCtx.translate(80, 80);
+      miniCtx.rotate(-cameraState.yaw);
+      miniCtx.fillStyle = '#38bdf8';
+      miniCtx.beginPath();
+      miniCtx.moveTo(0, -7);
+      miniCtx.lineTo(5, 5);
+      miniCtx.lineTo(0, 3);
+      miniCtx.lineTo(-5, 5);
+      miniCtx.closePath();
+      miniCtx.fill();
+      miniCtx.restore();
+    }
+
+    // --- MAIN ANIMATION & SIMULATION LOOP ---
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+
+      let moveX = 0;
+      let moveZ = 0;
+      if (keys.w) moveZ -= 1;
+      if (keys.s) moveZ += 1;
+      if (keys.a) moveX -= 1;
+      if (keys.d) moveX += 1;
+
+      if (Math.abs(joystickVector.x) > 0.05 || Math.abs(joystickVector.y) > 0.05) {
+        moveX += joystickVector.x;
+        moveZ += joystickVector.y;
+      }
+
+      const inputLen = Math.hypot(moveX, moveZ);
+      const isMoving = inputLen > 0.1;
+
+      if (isMoving) {
+        const normX = moveX / inputLen;
+        const normZ = moveZ / inputLen;
+
+        const forward = new THREE.Vector3(-Math.sin(cameraState.yaw), 0, -Math.cos(cameraState.yaw));
+        const right = new THREE.Vector3(Math.cos(cameraState.yaw), 0, -Math.sin(cameraState.yaw));
+
+        const moveDir = new THREE.Vector3()
+          .addScaledVector(forward, -normZ)
+          .addScaledVector(right, normX)
+          .normalize();
+
+        const currentSpeed = keys.shift ? playerPhysics.runSpeed : playerPhysics.speed;
+        const stepDist = currentSpeed * dt;
+
+        const nextX = playerGroup.position.x + moveDir.x * stepDist;
+        const nextZ = playerGroup.position.z + moveDir.z * stepDist;
+
+        if (!checkWallCollision(nextX, playerGroup.position.z, playerGroup.position.y)) {
+          playerGroup.position.x = nextX;
+        }
+        if (!checkWallCollision(playerGroup.position.x, nextZ, playerGroup.position.y)) {
+          playerGroup.position.z = nextZ;
+        }
+
+        playerGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+
+        playerPhysics.animCycle += dt * (keys.shift ? 16 : 9);
+        pLegLMesh.rotation.x = Math.sin(playerPhysics.animCycle) * 0.6;
+        pLegRMesh.rotation.x = -Math.sin(playerPhysics.animCycle) * 0.6;
+        playerGroup.armL.rotation.x = -Math.sin(playerPhysics.animCycle) * 0.55;
+        playerGroup.armR.rotation.x = Math.sin(playerPhysics.animCycle) * 0.55;
+
+        // footsteps muted per user preference for receptionist-only audio
+      } else {
+        playerPhysics.animCycle += dt * 2.5;
+        pTorsoMesh.position.y = 1.8 + Math.sin(playerPhysics.animCycle) * 0.02;
+        pLegLMesh.rotation.x = 0;
+        pLegRMesh.rotation.x = 0;
+        playerGroup.armL.rotation.x = 0;
+        playerGroup.armR.rotation.x = 0;
+      }
+
+      if (!playerPhysics.isGrounded) {
+        playerPhysics.velocity.y += playerPhysics.gravity * dt;
+        playerGroup.position.y += playerPhysics.velocity.y * dt;
+
+        const floorBase = (state.currentFloor === 0 ? 0 : 7.5);
+        if (playerGroup.position.y <= floorBase) {
+          playerGroup.position.y = floorBase;
+          playerPhysics.velocity.y = 0;
+          playerPhysics.isGrounded = true;
+        }
+      }
+
+      // Camera Chase
+      const camTarget = new THREE.Vector3(playerGroup.position.x, playerGroup.position.y + 1.8, playerGroup.position.z);
+      const camX = camTarget.x + Math.sin(cameraState.yaw) * Math.cos(cameraState.pitch) * cameraState.distance;
+      const camY = camTarget.y + Math.sin(cameraState.pitch) * cameraState.distance;
+      const camZ = camTarget.z + Math.cos(cameraState.yaw) * Math.cos(cameraState.pitch) * cameraState.distance;
+      camera.position.set(camX, camY, camZ);
+      camera.lookAt(camTarget);
+
+      // Gate boom barrier animation
+      const distToGate = Math.hypot(playerGroup.position.x, playerGroup.position.z - 115);
+      if (distToGate < 10) {
+        boomPivot.rotation.z = THREE.MathUtils.lerp(boomPivot.rotation.z, Math.PI / 2.3, dt * 4);
+      } else {
+        boomPivot.rotation.z = THREE.MathUtils.lerp(boomPivot.rotation.z, 0, dt * 4);
+      }
+
+      // Hospital Entrance sliding doors animation
+      const distToEntrance = Math.hypot(playerGroup.position.x, playerGroup.position.z - 20);
+      if (distToEntrance < 6) {
+        doorSlideL.position.x = THREE.MathUtils.lerp(doorSlideL.position.x, -5.2, dt * 4);
+        doorSlideR.position.x = THREE.MathUtils.lerp(doorSlideR.position.x, 5.2, dt * 4);
+      } else {
+        doorSlideL.position.x = THREE.MathUtils.lerp(doorSlideL.position.x, -2.5, dt * 4);
+        doorSlideR.position.x = THREE.MathUtils.lerp(doorSlideR.position.x, 2.5, dt * 4);
+      }
+
+      // Patient proximity & Running Away Animation
+      let nearestPatient = null;
+      let nearestDist = 999;
+      worldPatients.forEach(p => {
+        if (p.isRunningAway && p.mesh) {
+          p.z += dt * 14;
+          p.mesh.position.z = p.z;
+        }
+        const d = Math.hypot(playerGroup.position.x - p.x, playerGroup.position.z - p.z);
+        if (d < nearestDist && !p.isRunningAway) {
+          nearestDist = d;
+          nearestPatient = p;
+        }
+        if (p.mesh && p.mesh.userData.pill) {
+          p.mesh.userData.pill.rotation.y += dt * 2;
+        }
+      });
+
+      const promptEl = document.getElementById('interact-prompt');
+      const promptMsg = document.getElementById('txt-prompt-msg');
+      const zoneLabel = document.getElementById('txt-current-zone');
+
+      if (nearestDist < 4.5 && nearestPatient) {
+        state.activeTarget = { type: 'patient', data: nearestPatient };
+        promptEl.style.display = 'flex';
+        promptMsg.innerText = currentLang === 'hi' ? `मरीज ${nearestPatient.name} की जांच करें [E]` : `Examine Patient: ${nearestPatient.name} [E]`;
+        zoneLabel.innerText = nearestPatient.locName;
+      } else {
+        const distElevator = Math.hypot(playerGroup.position.x, playerGroup.position.z - (-21));
+        const distRecep = Math.hypot(playerGroup.position.x, playerGroup.position.z - 9);
+
+        if (distElevator < 5.5) {
+          state.activeTarget = { type: 'elevator' };
+          promptEl.style.display = 'flex';
+          promptMsg.innerText = currentLang === 'hi' ? `लिफ्ट से ${state.currentFloor === 0 ? 'प्रथम तल' : 'भूतल'} जाएं [E]` : `Take Elevator to Floor ${state.currentFloor === 0 ? '1' : '0'} [E]`;
+          zoneLabel.innerText = "Stretcher Elevator";
+        } else if (distRecep < 5.5) {
+          state.activeTarget = { type: 'reception' };
+          promptEl.style.display = 'flex';
+          promptMsg.innerText = currentLang === 'hi' ? `रिसेप्शन काउंटर पर पर्चा बनाएं [E]` : `Register at Reception Desk [E]`;
+          zoneLabel.innerText = "Central Reception";
+        } else {
+          state.activeTarget = null;
+          promptEl.style.display = 'none';
+          if (playerGroup.position.z < 20 && playerGroup.position.z > -30) {
+            zoneLabel.innerText = state.currentFloor === 0 ? (currentLang === 'hi' ? "मुख्य अस्पताल भवन (भूतल)" : "Hospital Building (Ground Floor)") : (currentLang === 'hi' ? "जनरल वार्ड (प्रथम तल)" : "General Wards (1st Floor)");
+          } else {
+            zoneLabel.innerText = currentLang === 'hi' ? "परिसर मार्ग" : "Hospital Campus Grounds";
+          }
+        }
+      }
+
+      renderICUMonitor();
+      drawMinimap();
+      renderer.render(scene, camera);
+    }
+
+    
+    // Prevent browser pull-to-refresh and gestures during touch gameplay
+    document.addEventListener('touchmove', (e) => {
+      if (e.target === renderer.domElement || e.target.closest('#mobile-controls')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    
+    // Home Screen Role Picker
+    let selectedHomeRole = 'doctor';
+    const roleDocBtn = document.getElementById('home-role-doctor');
+    const roleNurBtn = document.getElementById('home-role-nurse');
+
+    if (roleDocBtn && roleNurBtn) {
+      roleDocBtn.addEventListener('click', () => {
+        selectedHomeRole = 'doctor';
+        roleDocBtn.style.borderColor = '#38bdf8';
+        roleNurBtn.style.borderColor = '#475569';
+      });
+      roleNurBtn.addEventListener('click', () => {
+        selectedHomeRole = 'nurse';
+        roleNurBtn.style.borderColor = '#34d399';
+        roleDocBtn.style.borderColor = '#475569';
+      });
+    }
+
+    // Toggle Tools Bar
+    const btnToggleTools = document.getElementById('btn-toggle-tools');
+    if (btnToggleTools) {
+      btnToggleTools.addEventListener('click', () => {
+        const qb = document.getElementById('quick-buttons');
+        if (qb) {
+          qb.style.display = (qb.style.display === 'none' ? 'flex' : 'none');
+        }
+      });
+    }
+
+    // Start Game from Home Screen
+    const btnStartGame = document.getElementById('btn-start-game');
+    if (btnStartGame) {
+      btnStartGame.addEventListener('click', () => {
+        const hs = document.getElementById('home-start-screen');
+        if (hs) hs.style.display = 'none';
+        // Spawn player right inside the main hospital entrance facing Reception & Wards!
+        playerGroup.position.set(0, 0, 26);
+        setRole(selectedHomeRole);
+        audio.playReceptionistChime(selectedHomeRole);
+
+        // Receptionist Work Allocation Prompt
+        if (selectedHomeRole === 'doctor') {
+          showNotification(currentLang === 'hi' 
+            ? "रिसेप्शनिस्ट: नमस्ते डॉक्टर साहब! 10 मरीज बेड और ओपीडी में प्रतीक्षारत हैं। कृपया 10 मरीजों का सफल इलाज करें!"
+            : "Receptionist: Namaste Doctor! 10 patients are waiting across OPD and Wards. Treat 10 patients to earn your Senior Consultant promotion!");
+        } else {
+          showNotification(currentLang === 'hi'
+            ? "रिसेप्शनिस्ट: नमस्ते सिस्टर! जनरल वार्ड बेड और इमरजेंसी में मरीजों का वाइटल्स चेक और ड्रिप मॉनिटरिंग करें!"
+            : "Receptionist: Namaste Staff Nurse! Patients on Ward beds and Emergency need vitals and IV fluid checks. Care for 10 patients!");
+        }
+      });
+    }
+
+    // Victory Win Condition Check
+    function checkWinCondition() {
+      if (state.patientsTreated >= 10) {
+        audio.playReceptionistChime();
+        const modalVic = document.getElementById('modal-victory');
+        if (modalVic) {
+          modalVic.style.display = 'flex';
+          document.getElementById('victory-revenue-val').innerText = `₹${state.revenue.toLocaleString()}`;
+          document.getElementById('victory-trust-val').innerText = `${state.trust}%`;
+
+          const titleEl = document.getElementById('victory-role-title');
+          const descEl = document.getElementById('victory-role-desc');
+
+          if (state.role === 'doctor') {
+            titleEl.innerText = currentLang === 'hi' ? "बधाई डॉक्टर साहब! (Promoted to Senior Consultant)" : "Congratulations Doctor! (Promoted to Senior Consultant)";
+            descEl.innerHTML = currentLang === 'hi'
+              ? "आपने मेडिकल सिटी अस्पताल में 10 मरीजों का सफल निदान एवं उपचार पूरा किया है! आपके क्लिनिकल समर्पण को देखते हुए मेडिकल सुपरिंटेंडेंट ने आपको <strong>सीनियर कंसल्टेंट फिजिशियन</strong> के पद पर पदोन्नत किया है!"
+              : "You have successfully diagnosed and treated 10 patients across Medical City! Due to your clinical excellence, the Medical Superintendent has officially promoted you to <strong>Senior Consultant Physician</strong>!";
+          } else {
+            titleEl.innerText = currentLang === 'hi' ? "बधाई स्टाफ नर्स सिस्टर! (Promoted to Chief Nursing Superintendent)" : "Congratulations Staff Nurse! (Promoted to Chief Nursing Superintendent)";
+            descEl.innerHTML = currentLang === 'hi'
+              ? "आपने 10 भर्ती मरीजों की वाइटल्स जांच, आईवी ड्रिप और उत्कृष्ट नर्सिंग देखभाल की है! अस्पताल प्रबंधन ने आपको <strong>चीफ नर्सिंग सुपरिंटेंडेंट</strong> के पद पर पदोन्नत किया है!"
+              : "You have lovingly monitored vitals, administered IV fluids, and cared for 10 patients! You have been promoted to <strong>Chief Nursing Superintendent</strong> of Medical City Hospital!";
+          }
+        }
+      }
+    }
+
+    const btnVicRestart = document.getElementById('btn-victory-restart');
+    if (btnVicRestart) {
+      btnVicRestart.addEventListener('click', () => {
+        state.patientsTreated = 0;
+        state.patientsLost = 0;
+        state.revenue = 3500;
+        state.trust = 95;
+        updateEconomyHUD();
+        document.getElementById('modal-victory').style.display = 'none';
+        showNotification("Next Shift Started! अगली शिफ्ट शुरू हुई।");
+      });
+    }
+
+    const btnVicContinue = document.getElementById('btn-victory-continue');
+    if (btnVicContinue) {
+      btnVicContinue.addEventListener('click', () => {
+        document.getElementById('modal-victory').style.display = 'none';
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+  </script>
+  <div id="campus-zones-cache" style="display:none;"><div id="btn-goto-stage3"></div><div id="btn-steth-listen"></div><div id="btn-view-scan-link"></div><div id="diag-outcome"></div><div id="dir-quiz-feedback"></div><div id="dir-quiz-opts"></div><div id="final-diag-opts"></div><div id="inq-feedback"></div><div id="inquiry-opts"></div><div id="inq-opt-1"></div><div id="inq-opt-2"></div><div id="inq-opt-3"></div><div id="quiz-opts"></div><div id="quiz-feedback"></div><div id="entrance"></div><div id="security"></div><div id="reception"></div><div id="opd"></div><div id="emergency"></div><div id="ambulance"></div><div id="wards"></div><div id="nursing"></div><div id="icu"></div><div id="ot"></div><div id="pathology"></div><div id="radiology"></div><div id="college"></div><div id="lecture"></div><div id="library"></div><div id="canteen"></div><div id="pharmacy"></div><div id="quarters"></div><div id="garden"></div><div id="parking"></div><div id="roads"></div><div id="elevator"></div></div>
+
+  </body>
+</html>

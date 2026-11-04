@@ -1,0 +1,18 @@
+{
+  "name": "medical-city-3d",
+  "version": "1.0.0",
+  "description": "Medical City - 3D Realistic Open-World Hospital Simulation Game",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "game",
+    "simulation",
+    "threejs",
+    "webgl",
+    "hospital",
+    "medical-education"
+  ],
+  "author": "Medical City Dev Team",
+  "license": "MIT"
+}
