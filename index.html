@@ -2922,6 +2922,20 @@
       return false;
     }
 
+    function checkAmbulanceCollision(newX, newZ) {
+      const halfWidth = 2.25;
+      const halfLength = 3.55;
+      if (Math.abs(newX) > 134 || Math.abs(newZ) > 134) return true;
+      for (const c of colliders) {
+        // The ambulance's own parked-bay collider must not trap the vehicle at spawn.
+        if (c.minX === 26 && c.maxX === 30 && c.minZ === 28.5 && c.maxZ === 35.5) continue;
+        if (0 >= c.minY && 0 <= c.maxY &&
+            newX + halfWidth > c.minX && newX - halfWidth < c.maxX &&
+            newZ + halfLength > c.minZ && newZ - halfLength < c.maxZ) return true;
+      }
+      return false;
+    }
+
     function updateEconomyHUD() {
       document.getElementById('txt-rev-badge').innerText = '💰 ₹' + state.revenue.toLocaleString();
       let progressLabel = 'Treated: ' + state.patientsTreated + ' / 10';
@@ -3770,7 +3784,10 @@
           ambulanceDrive.patientOnboard = false;
           playerGroup.visible = true;
           playerGroup.position.set(31,0,38);
-          if (window.medicalCityAmbulancePatient) window.medicalCityAmbulancePatient.visible = true;
+          if (window.medicalCityAmbulancePatient) {
+            window.medicalCityAmbulancePatient.position.set(30,0,37);
+            window.medicalCityAmbulancePatient.visible = true;
+          }
           if (window.medicalCityAmbulanceMarkers) window.medicalCityAmbulanceMarkers.forEach(m=>m.visible=false);
           window.dispatchEvent(new CustomEvent('medicalcity-ambulance-level-complete'));
         }
@@ -3883,7 +3900,7 @@
           const driveSpeed = (keys.shift ? 19 : 12) * throttle;
           const nx = vehicle.position.x + Math.sin(vehicle.rotation.y) * driveSpeed * dt;
           const nz = vehicle.position.z + Math.cos(vehicle.rotation.y) * driveSpeed * dt;
-          if (Math.abs(nx) < 132 && Math.abs(nz) < 132) vehicle.position.set(nx, 0, nz);
+          if (!checkAmbulanceCollision(nx, nz)) vehicle.position.set(nx, 0, nz);
         }
         ambulanceDrive.elapsedSeconds = ambulanceDrive.startedAt ? (Date.now()-ambulanceDrive.startedAt)/1000 : 0;
         if (ambulanceDrive.missionMode === 'patient-transfer') {
@@ -4315,7 +4332,10 @@
         state.nurseCleanedSurfaces = 0;
         if (window.MedicalCityTasks) window.MedicalCityTasks.reset(state.selectedLevel === 2);
         if (window.medicalCityAmbulanceDrive) Object.assign(window.medicalCityAmbulanceDrive, { active:false, checkpoint:0, completed:false, phase:'idle', missionMode:'patient-transfer', patientOnboard:false, startedAt:0, elapsedSeconds:0 });
-        if (window.medicalCityAmbulancePatient) window.medicalCityAmbulancePatient.visible = true;
+        if (window.medicalCityAmbulancePatient) {
+          window.medicalCityAmbulancePatient.position.set(-40,0,106);
+          window.medicalCityAmbulancePatient.visible = true;
+        }
         if (window.medicalCityAmbulanceMarkers) window.medicalCityAmbulanceMarkers.forEach(m=>m.visible=false);
         playerGroup.position.set(0, 0, 26);
         state.currentFloor = 0;
