@@ -3853,7 +3853,7 @@
         if (window.medicalCityAmbulanceMarkers) window.medicalCityAmbulanceMarkers.forEach((m,i)=>m.visible=i===ambulanceDrive.checkpoint);
       }
 
-      if (isMoving) {
+      if (isMoving && !ambulanceDrive?.active) {
         const normX = moveX / inputLen;
         const normZ = moveZ / inputLen;
 
