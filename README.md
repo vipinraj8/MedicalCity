@@ -1,15 +1,36 @@
 # Medical City 3D — Hospital Simulation
 
-Medical City is a browser-based hospital simulation built with **HTML, CSS, JavaScript and Three.js r128**. The existing application includes third-person movement, keyboard and touch controls, collision checks, hospital navigation, patient interactions, bilingual interface content, educational cases, audio effects and browser save data.
+Medical City is a browser-based hospital simulation built with **HTML, CSS, JavaScript and Three.js r128**. It keeps the existing static-site architecture and browser gameplay systems; it has not been migrated to Unity or another engine.
 
 ## Current architecture
 
-- `index.html` contains the existing interface, game state, Three.js scene construction and gameplay systems.
-- `js/medical-city-enhancements.js` adds reception-area 3D details and adaptive rendering quality. It loads after the existing inline game script and reuses its Three.js scene, renderer, lighting and collision helpers.
-- `package.json` provides a lightweight static-server command. There is no bundler or framework migration.
+- `index.html` contains the existing UI, game state, Three.js scene, movement/camera controls, collisions, patient-case quiz and department interactions.
+- `js/medical-city-enhancements.js` adds reception-area 3D details and adaptive graphics-quality settings.
+- `js/medical-city-nurse-tasks.js` adds the Level 2 observation-station and marked-surface objectives.
+- `package.json` provides a lightweight static-server command. There is no build bundler or framework migration.
 - `vercel.json` configures static hosting headers.
 
-The project remains a Three.js browser game. It has not been migrated to Unity or another engine.
+## Current game flow
+
+The home screen has four stages:
+
+1. **Game mode:** Single Player is available. Multiplayer displays an availability notice because network sessions and synchronized player state have not been implemented.
+2. **Character:** Doctor, Nurse or Patient.
+3. **Game rules:** A role-specific briefing and desktop/mobile controls.
+4. **Level:** Select the role-appropriate mission.
+
+### Available play modes
+
+| Character / level | Objective | Status |
+|---|---|---|
+| Doctor — Level 1 | Diagnose five distinct fictional patients using the existing three-question case flow. A patient ID counts once. | Playable prototype |
+| Nurse — Level 2 | Review five fictional observation charts and record three marked surface-cleaning objectives. | Playable prototype |
+| Patient — Free roam | Explore the currently available campus as a patient character. | Playable prototype |
+| Level 3 | Locked. | Not implemented |
+| Level 4 | Locked. | Not implemented |
+| Multiplayer | Shows a clear not-yet-available message; no online session is started. | Not implemented |
+
+The English game interface has no language toggle. Some unused Hindi localization data remains in source files, but the player-facing language selector has been removed.
 
 ## Run locally
 
@@ -19,7 +40,7 @@ Install Node.js, then from the repository root run:
 npm start
 ```
 
-Open the local URL printed by the static server (normally `http://localhost:3000`). Alternatively, use any static HTTP server, such as:
+Open the local URL printed by the static server (normally `http://localhost:3000`). Alternatively:
 
 ```bash
 python3 -m http.server 8080
@@ -27,26 +48,20 @@ python3 -m http.server 8080
 
 Then open `http://localhost:8080`.
 
-Use an HTTP server rather than opening `index.html` directly as a file so browser asset and module behavior is consistent.
+Use an HTTP server rather than opening `index.html` directly as a file.
 
 ## Deploy to Vercel
 
-Import this GitHub repository into Vercel and keep the project root as the Root Directory. This is a static site: no framework preset or build command is required. Leave the output directory at the platform's default static root unless the deployment configuration is deliberately changed.
+Import this GitHub repository into Vercel and keep the project root as the Root Directory. This is a static site: no framework preset or build command is required. Keep the output directory at the static root.
 
-## This enhancement phase
+## Graphics and asset status
 
-The reception enhancement adds procedural 3D mesh props (registration monitors, waiting chairs, a directory kiosk, wall directory panels, ceiling light panels and lobby floor markers). It also adds Auto, Low, Medium and High graphics profiles, with an adaptive mobile-oriented default. The quality preference is stored separately from the existing game save.
+The environment still uses many procedural Three.js meshes and canvas textures. The project does **not** yet contain a GLB/GLTF model library for realistic human faces, MRI equipment or detailed medical props. The reception and nurse objective props are interactive game geometry, not medically validated equipment models.
 
-Existing movement, case content, patient interactions, role selection, language switching and save-state behavior are retained.
+The existing scene has hospital areas, campus roads/buildings, patient beds, an ambulance and a small auto-rickshaw. A detailed metro station, moving city crowds and enter/exit car or motorcycle driving systems are not implemented in this phase.
 
-## Current limitations — do not mistake these for completed features
+## Performance and testing
 
-- The main application is still largely a single HTML file; the enhancement script is a first small modular step.
-- The repository does not currently contain a GLB/GLTF asset library or a model-loading pipeline.
-- Existing medical props and characters are primarily procedural primitive meshes, not verified, medically accurate imported models.
-- Full progressive room streaming, robust navmesh pathfinding, a dedicated NPC animation system and comprehensive Android-device profiling remain future work.
-- A real browser session on desktop and Android still needs to be tested after deployment. See `docs/TESTING_REPORT.md`.
+Graphics quality can be set to Auto, Low, Medium or High. Shadows remain configurable. Adaptive settings are intended to reduce rendering cost on constrained devices, but real device profiling is still required.
 
-## Browser support
-
-The target is modern desktop browsers and Android Chrome with WebGL support. Actual performance varies by device, browser, thermal state and GPU. Use the graphics-quality setting to lower pixel density and shadow-map cost on constrained hardware.
+See `docs/TESTING_REPORT.md` for the checks performed and the desktop/Android acceptance tests that remain.
