@@ -3960,7 +3960,6 @@
       const promptMsg = document.getElementById('txt-prompt-msg');
       const zoneLabel = document.getElementById('txt-current-zone');
 
-      const ambulanceDrive = window.medicalCityAmbulanceDrive;
       const ambulance = window.medicalCityAmbulance;
       const nearAmbulance = ambulance && !ambulanceDrive?.active && Math.hypot(playerGroup.position.x-ambulance.position.x,playerGroup.position.z-ambulance.position.z)<6;
       const nurseTaskTarget = (state.selectedLevel === 2 && state.role === 'nurse' && window.MedicalCityTasks)
