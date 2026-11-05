@@ -275,6 +275,23 @@
   addBox(metro, 23, 0.22, 4, mats2.metroBlue, 101, 3.4, 112, 'Metro bus stop shelter roof');
   [-10, 10].forEach(x => addBox(metro, 0.2, 3.2, 0.2, mats2.frame, 101 + x, 1.7, 112, 'Shelter column'));
 
+  // Fictional patient waiting on a stretcher at the Level 3 roadside pickup.
+  const pickupPatient = new THREE.Group();
+  pickupPatient.name = 'Level3AmbulancePickupPatient';
+  pickupPatient.position.set(-40, 0, 106);
+  addBox(pickupPatient, 1.45, 0.2, 2.35, mats2.frame, 0, 0.55, 0, 'Pickup stretcher frame');
+  addBox(pickupPatient, 1.3, 0.22, 2.2, mats2.white, 0, 0.73, 0, 'Pickup stretcher mattress');
+  addBox(pickupPatient, 0.82, 0.58, 0.94, mats2.metroBlue, 0, 0.93, 0.35, 'Patient torso');
+  const pickupHead = new THREE.Mesh(new THREE.SphereGeometry(0.27, 12, 10), mats2.cream);
+  pickupHead.position.set(0, 1.0, -0.72);
+  pickupPatient.add(pickupHead);
+  addBox(pickupPatient, 0.18, 0.2, 0.82, mats2.pink, -0.48, 0.75, -0.1, 'Patient left arm');
+  addBox(pickupPatient, 0.18, 0.2, 0.82, mats2.pink, 0.48, 0.75, -0.1, 'Patient right arm');
+  addLabel(pickupPatient, 'PATIENT PICKUP', 0, 2.0, 0, 3.2, 0.72, '#b91c1c', '#ffffff');
+  g.add(pickupPatient);
+  window.medicalCityAmbulancePatient = pickupPatient;
+  addBox(g, 4.5, 0.12, 0.18, mats2.amber, -40, 0.12, 109.2, 'Patient pickup road marking');
+
   // The existing ambulance is dressed with additional details and a marked bay.
   const ambulance = window.medicalCityAmbulance;
   if (ambulance) {
