@@ -3754,6 +3754,11 @@
           ambulanceDrive.patientOnboard = false;
           ambulanceDrive.startedAt = Date.now();
           ambulanceDrive.elapsedSeconds = 0;
+          ambulanceDrive.lastHudSecond = -1;
+          if (window.medicalCityAmbulancePatient) {
+            window.medicalCityAmbulancePatient.position.set(-40,0,106);
+            window.medicalCityAmbulancePatient.visible = true;
+          }
           playerGroup.visible = false;
           cameraState.distance = 12;
           const route = ambulanceDrive.missionMode === 'patient-transfer' ? [[-40,106],[28,32]] : [[0,75],[-12,102],[28,32]];
@@ -3903,6 +3908,11 @@
           if (!checkAmbulanceCollision(nx, nz)) vehicle.position.set(nx, 0, nz);
         }
         ambulanceDrive.elapsedSeconds = ambulanceDrive.startedAt ? (Date.now()-ambulanceDrive.startedAt)/1000 : 0;
+        const timerSecond = Math.floor(ambulanceDrive.elapsedSeconds);
+        if (timerSecond !== ambulanceDrive.lastHudSecond) {
+          ambulanceDrive.lastHudSecond = timerSecond;
+          if (state.selectedLevel === 3) updateLevelObjectivesHud();
+        }
         if (ambulanceDrive.missionMode === 'patient-transfer') {
           const pickup = [-40,106];
           const dropoff = [28,32];
@@ -4046,11 +4056,18 @@
       const nurseTaskTarget = (state.selectedLevel === 2 && state.role === 'nurse' && window.MedicalCityTasks)
         ? window.MedicalCityTasks.findTarget(playerGroup.position, state.currentFloor) : null;
       if (ambulanceDrive?.active && ambulance) {
-        if (!state.activeTarget || !['ambulance-pickup','ambulance-dropoff'].includes(state.activeTarget.type)) {
+        if (state.activeTarget && ['ambulance-pickup','ambulance-dropoff'].includes(state.activeTarget.type)) {
+          // Keep the pickup/drop-off action visible while the ambulance is inside its marker.
+        } else if (ambulanceDrive.missionMode === 'patient-transfer' && ambulanceDrive.phase === 'dropoff') {
+          state.activeTarget = null;
+          promptEl.style.display = 'flex';
+          promptMsg.innerText = 'Patient onboard • Drive to Emergency Bay • Stop in the marked area to unload';
+          zoneLabel.innerText = 'CATS 108 Ambulance';
+        } else {
           state.activeTarget = { type:'ambulance-exit' };
           promptEl.style.display = 'flex';
           promptMsg.innerText = ambulanceDrive.missionMode === 'patient-transfer'
-            ? (ambulanceDrive.phase === 'pickup' ? 'Driving to pickup • WASD / joystick • E to exit' : 'Patient onboard • Drive to Emergency • E to exit')
+            ? 'Driving to pickup • WASD / joystick • E to exit'
             : 'Driving • WASD / joystick • E to exit • Checkpoint ' + Math.min(ambulanceDrive.checkpoint+1,3) + ' / 3';
           zoneLabel.innerText = 'CATS 108 Ambulance';
         }
