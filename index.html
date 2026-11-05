@@ -1031,7 +1031,7 @@
   <div class="modal-overlay" id="modal-role">
     <div class="modal-box" style="max-width: 560px;">
       <div class="modal-header">
-        <div class="modal-title" id="role-modal-title">🧑‍⚕️ Wardrobe & Role Selector (वार्डरोब एवं भूमिका)</div>
+        <div class="modal-title" id="role-modal-title">🧑‍⚕️ Wardrobe & Role Selector</div>
         <button class="modal-close" id="btn-close-role">&times;</button>
       </div>
       <div class="modal-body">
@@ -1039,28 +1039,28 @@
         <div style="display:flex; flex-direction:column; gap:10px;">
           <button class="case-item-btn" id="role-opt-doctor">
             <div>
-              <strong style="color:#38bdf8;">1. Resident Doctor (चिकित्सक / डॉक्टर)</strong>
+              <strong style="color:#38bdf8;">1. Resident Doctor</strong>
               <div style="font-size:11px; color:#94a3b8;">Attire: Crisp white doctor coat, stethoscope around neck, formal trousers. Duty: OPD clinics and ward rounds.</div>
             </div>
             <span>🩺</span>
           </button>
           <button class="case-item-btn" id="role-opt-nurse">
             <div>
-              <strong style="color:#34d399;">2. Staff Nurse (स्टाफ नर्स)</strong>
+              <strong style="color:#34d399;">2. Staff Nurse</strong>
               <div style="font-size:11px; color:#94a3b8;">Attire: Aqua medical scrub suit, nurse cap with cross, ID badge. Duty: Monitor vitals, administer IV fluids, triage.</div>
             </div>
             <span>💉</span>
           </button>
           <button class="case-item-btn" id="role-opt-explorer">
             <div>
-              <strong style="color:#fbbf24;">3. Medical Student / Explorer (मेडिकल छात्र)</strong>
+              <strong style="color:#fbbf24;">3. Medical Student / Explorer</strong>
               <div style="font-size:11px; color:#94a3b8;">Attire: Polo shirt, campus backpack strapped on shoulders, college lanyard. Duty: Explore and learn clinical cases.</div>
             </div>
             <span>🎓</span>
           </button>
           <button class="case-item-btn" id="role-opt-visitor">
             <div>
-              <strong style="color:#f472b6;">4. Hospital Visitor / Patient Relative (आगंतुक)</strong>
+              <strong style="color:#f472b6;">4. Hospital Visitor / Patient Relative</strong>
               <div style="font-size:11px; color:#94a3b8;">Attire: Casual Indian kurta, denim jeans. Duty: Navigate registration, visit pharmacy, meet patients.</div>
             </div>
             <span>🚶</span>
@@ -1722,7 +1722,7 @@
         mission1: "नाइट शिफ्ट सक्रिय है: अस्पताल के अंदर जाएं और मरीजों की जांच करें। 2 गलत जवाब पर मरीज भाग जाएगा!"
       }
     };
-    let currentLang = 'en';
+    const currentLang = 'en';
 
     // --- GAME STATE: NIGHT MODE DEFAULT ---
     const state = {
@@ -3660,19 +3660,7 @@
     });
 
     // --- LANGUAGE & NIGHT SHIFT TOGGLES ---
-    function toggleLanguage() {
-      audio.playClick();
-      currentLang = (currentLang === 'en' ? 'hi' : 'en');
-      const loc = LOCALES[currentLang];
-      document.getElementById('txt-hosp-name').innerText = loc.hospName;
-      document.getElementById('lbl-location').innerText = loc.zone;
-      document.getElementById('lbl-floor').innerText = loc.floor;
-      document.getElementById('lbl-mission-head').innerText = loc.missionHead;
-      document.getElementById('txt-btn-lang').innerText = (currentLang === 'en' ? 'हिन्दी' : 'English');
-      document.getElementById('txt-mission-desc').innerText = loc.mission1;
-      showNotification(currentLang === 'hi' ? 'भाषा बदलकर हिन्दी की गई।' : 'Language changed to English.');
-    }
-
+    // Player-facing interface is intentionally English-only.
     function toggleNightShift() {
       audio.playClick();
       state.isNight = !state.isNight;
