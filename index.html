@@ -1151,6 +1151,16 @@
               <p style="font-size:12px;color:#94a3b8;margin-top:5px;">Not available yet. Online sessions and synchronized players still need a server.</p>
             </button>
           </div>
+          <a id="home-instagram-follow" href="https://www.instagram.com/x_vipinraj_x/" target="_blank" rel="noopener noreferrer"
+             aria-label="Follow x_vipinraj_x on Instagram"
+             style="display:flex;align-items:center;justify-content:center;gap:9px;margin-top:14px;padding:11px 16px;border-radius:12px;
+                    color:#fff;text-decoration:none;font-weight:800;font-size:14px;
+                    background:linear-gradient(110deg,#833ab4 0%,#e1306c 48%,#f77737 100%);
+                    border:1px solid rgba(255,255,255,.24);box-shadow:0 6px 20px rgba(225,48,108,.2);">
+            <span aria-hidden="true" style="font-size:19px;">📸</span>
+            Follow @x_vipinraj_x on Instagram
+            <span aria-hidden="true" style="font-size:16px;">↗</span>
+          </a>
           <div id="home-mode-message" style="display:none;margin-top:12px;padding:10px;border-radius:8px;background:#422006;color:#fde68a;font-size:12px;"></div>
         </section>
 
@@ -1256,7 +1266,7 @@
         </div>
 
         <div style="background:rgba(56, 189, 248, 0.15); padding:8px 14px; border-radius:20px; display:inline-block; margin-bottom:14px; font-size:12px; border:1px solid rgba(56, 189, 248, 0.4);">
-          📸 Follow Creator on Instagram: <a href="https://www.instagram.com/x_vipinraj_X/" target="_blank" style="color:#38bdf8; text-decoration:underline; font-weight:bold;">@x_vipinraj_X</a>
+          📸 Follow Creator on Instagram: <a href="https://www.instagram.com/x_vipinraj_x/" target="_blank" style="color:#38bdf8; text-decoration:underline; font-weight:bold;">@x_vipinraj_x</a>
         </div>
 
         <div style="display:flex; justify-content:center; gap:10px;">
@@ -2070,21 +2080,54 @@
     const texBrick = makeBrickTexture();
     const texSandstone = makeSandstoneTexture();
 
+    // --- PROJECT PBR TEXTURES (local SVG maps, Three.js r128) ---
+    const cityTextureLoader = new THREE.TextureLoader();
+
+    function loadCityTexture(path, repeatX=1, repeatY=1, colorMap=false) {
+      const texture = cityTextureLoader.load('textures/' + path + '.svg');
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(repeatX, repeatY);
+      if (colorMap) texture.encoding = THREE.sRGBEncoding;
+      return texture;
+    }
+
+    function loadCityPbrSet(folder, name, repeatX=1, repeatY=1) {
+      return {
+        map: loadCityTexture(folder + '/' + name + '_basecolor', repeatX, repeatY, true),
+        normalMap: loadCityTexture(folder + '/' + name + '_normal', repeatX, repeatY, false),
+        roughnessMap: loadCityTexture(folder + '/' + name + '_roughness', repeatX, repeatY, false)
+      };
+    }
+
+    const cityPbr = {
+      asphalt: loadCityPbrSet('ground', 'asphalt', 10, 10),
+      concrete: { map: loadCityTexture('ground/concrete_basecolor', 8, 8, true) },
+      hospitalFloor: loadCityPbrSet('hospital', 'hospital_floor_tile', 6, 6),
+      hospitalWall: { map: loadCityTexture('hospital/hospital_wall_paint_basecolor', 4, 3, true) },
+      roof: { map: loadCityTexture('neighborhood/roof_tile_basecolor', 3, 3, true) },
+      doctorCoat: { map: loadCityTexture('characters/doctor_coat_fabric_basecolor', 1, 1, true) },
+      nurseScrubs: { map: loadCityTexture('characters/nurse_scrub_fabric_basecolor', 1, 1, true) },
+      patientGown: { map: loadCityTexture('characters/patient_gown_fabric_basecolor', 1, 1, true) },
+      ambulanceWhite: { map: loadCityTexture('vehicles/ambulance_white_paint_basecolor', 2, 2, true) },
+      ambulanceRed: { map: loadCityTexture('vehicles/ambulance_red_reflective_basecolor', 2, 2, true) }
+    };
+
     const mats = {
       grass: new THREE.MeshLambertMaterial({ map: texGrass }),
-      road: new THREE.MeshLambertMaterial({ color: 0x1f2937 }),
-      curb: new THREE.MeshLambertMaterial({ color: 0x94a3b8 }),
-      sandstoneWall: new THREE.MeshLambertMaterial({ map: texSandstone }),
+      road: new THREE.MeshStandardMaterial({ color: 0xffffff, ...cityPbr.asphalt, roughness: 0.92, metalness: 0.0 }),
+      curb: new THREE.MeshStandardMaterial({ color: 0xffffff, ...cityPbr.concrete, roughness: 0.88, metalness: 0.0 }),
+      sandstoneWall: new THREE.MeshStandardMaterial({ color: 0xffffff, ...cityPbr.hospitalWall, roughness: 0.78, metalness: 0.0 }),
       brickWall: new THREE.MeshLambertMaterial({ map: texBrick }),
-      residentialPlaster: new THREE.MeshLambertMaterial({ color: 0xfde047 }),
+      residentialPlaster: new THREE.MeshStandardMaterial({ color: 0xf1e6d4, ...cityPbr.concrete, roughness: 0.9, metalness: 0.0 }),
       residentialBalcony: new THREE.MeshLambertMaterial({ color: 0xe2e8f0 }),
       waterTankBlack: new THREE.MeshLambertMaterial({ color: 0x111827 }),
-      terracottaRoof: new THREE.MeshLambertMaterial({ color: 0xc2410c }),
+      terracottaRoof: new THREE.MeshStandardMaterial({ color: 0xffffff, ...cityPbr.roof, roughness: 0.82, metalness: 0.0 }),
       speedBreaker: new THREE.MeshLambertMaterial({ color: 0xeab308 }),
       acUnit: new THREE.MeshLambertMaterial({ color: 0xf1f5f9 }),
-      whiteWall: new THREE.MeshLambertMaterial({ color: 0xf8fafc }),
-      interiorTile: new THREE.MeshLambertMaterial({ map: texFloorMarble }),
-      emergencyRed: new THREE.MeshLambertMaterial({ color: 0xdc2626 }),
+      whiteWall: new THREE.MeshStandardMaterial({ color: 0xffffff, ...cityPbr.hospitalWall, roughness: 0.8, metalness: 0.0 }),
+      interiorTile: new THREE.MeshStandardMaterial({ color: 0xffffff, ...cityPbr.hospitalFloor, roughness: 0.3, metalness: 0.0 }),
+      emergencyRed: new THREE.MeshStandardMaterial({ color: 0xffffff, ...cityPbr.ambulanceRed, roughness: 0.38, metalness: 0.0 }),
       metal: new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.35, metalness: 0.8 }),
       glass: new THREE.MeshPhysicalMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5, roughness: 0.1 }),
       bedSheet: new THREE.MeshLambertMaterial({ color: 0xe0f2fe }),
@@ -2649,7 +2692,7 @@
       // 7. CATS / 102 Delhi Govt Ambulance outside Emergency Gate
       const amb = new THREE.Group();
       amb.position.set(28, 0, 32);
-      const ambBody = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.7, 6.8), mats.whiteWall);
+      const ambBody = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.7, 6.8), new THREE.MeshStandardMaterial({ color:0xffffff, ...cityPbr.ambulanceWhite, roughness:0.42, metalness:0.0 }));
       ambBody.position.y = 1.65;
       amb.add(ambBody);
       const ambStripe = new THREE.Mesh(new THREE.BoxGeometry(3.45, 0.55, 6.82), mats.emergencyRed);
@@ -2723,7 +2766,11 @@
       playerGroup.add(pLegRMesh);
 
       const torsoColor = (state.role === 'doctor' ? 0xffffff : (state.role === 'nurse' ? 0x38bdf8 : (state.role === 'patient' ? 0xdbeafe : (state.role === 'explorer' ? 0x0284c7 : 0xb91c1c))));
-      pTorsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.25, 0.5), new THREE.MeshLambertMaterial({ color: torsoColor }));
+      const roleFabric = state.role === 'doctor' ? cityPbr.doctorCoat.map : (state.role === 'nurse' ? cityPbr.nurseScrubs.map : (state.role === 'patient' ? cityPbr.patientGown.map : null));
+      pTorsoMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(0.85, 1.25, 0.5),
+        new THREE.MeshStandardMaterial({ color: roleFabric ? 0xffffff : torsoColor, map: roleFabric, roughness: 0.82, metalness: 0.0 })
+      );
       pTorsoMesh.position.y = 1.8;
       pTorsoMesh.castShadow = true;
       playerGroup.add(pTorsoMesh);
