@@ -1,36 +1,47 @@
 # Medical City — Current Asset & Component Inventory
 
-This inventory describes the files currently tracked in the repository. It intentionally distinguishes existing procedural geometry from external 3D assets.
+This inventory describes the files and game objects currently tracked. It distinguishes procedural meshes from imported 3D assets.
 
 ## Application files
 
-- `index.html` — existing single-page browser game. Loads Three.js r128 from a CDN and contains the current UI, state, gameplay, scene construction, character geometry, patient cases and interaction logic.
-- `js/medical-city-enhancements.js` — additive reception-area geometry and adaptive graphics settings, loaded after the existing inline game script.
-- `package.json` — lightweight static-server script; no bundler or front-end framework is configured.
+- `index.html` — existing single-page game, scene creation, movement, camera, collision checks, patient case data, role/level menu and existing department UI.
+- `js/medical-city-enhancements.js` — procedural reception details and adaptive graphics-quality profiles.
+- `js/medical-city-nurse-tasks.js` — Level 2 nurse task props, fictional observation charts, cleaning objectives and task modal.
+- `package.json` — lightweight static-server command; no bundler.
 - `vercel.json` — static deployment headers.
-- `README.md` — setup and deployment instructions.
+- `README.md` — setup and current gameplay guide.
 
-## Existing 3D content
+## Current menu and gameplay systems
 
-The Three.js scene currently constructs its world in JavaScript using primitive geometries and procedural canvas textures. Existing items include the hospital shell, entrance doors, reception desk, stretcher/elevator elements, patient beds, patient/player characters, ambulance, campus roads, gate, landscape elements and medical learning UI.
+- Four-stage game flow: mode, character, game rules, level.
+- Single Player entry. Multiplayer is explicitly marked unavailable until backend player sessions and synchronized state exist.
+- Characters: Doctor, Nurse and Patient.
+- Doctor Level 1: five distinct patient IDs must complete the current three-question case flow correctly.
+- Nurse Level 2: five station charts and three cleaning tasks must be recorded.
+- Patient Free Roam: campus exploration without professional objectives.
+- Levels 3 and 4: locked and not implemented.
+- English-only player-facing menu and language control removed.
 
-The new enhancement module adds:
-- Two reception workstation displays and counter detailing.
-- Three waiting chairs with collision bounds.
-- A freestanding campus-directory kiosk.
-- OPD and emergency wall directory panels.
-- Ceiling light panels and floor wayfinding inlays.
-- A lobby planter.
+## Existing and newly added 3D content
 
-## Asset pipeline status
+The active Three.js scene primarily creates geometry and procedural canvas textures in JavaScript. Existing content includes:
+- Campus ground and roads, gate, hospital exterior and accessible hospital areas.
+- Reception, entrance door panels, patient beds, patient/player characters and an elevator.
+- Ambulance and auto-rickshaw props.
+- Reception enhancement: dual workstation monitors, counter detailing, waiting chairs, directory kiosk/panels, ceiling light panels, floor inlays and planter.
+- Nurse Level 2 props: five observation station stands/monitors, three marked work surfaces, animated task rings and labels.
 
-- Three.js runtime: r128 (CDN).
-- GLB/GLTF models: **no imported model library or GLTF loader found in the current tracked project**.
-- Draco/KTX2/Meshopt compression: not configured.
-- Instanced rendering: no existing `InstancedMesh` usage found in the inspected application.
-- Lighting/materials: existing Lambert, Standard and Physical materials, procedural canvas textures, ambient/directional/point lights and optional shadow maps.
-- NPC/medical model accuracy: existing characters and equipment are simple game meshes; they should not be described as clinically validated or production-quality medical models.
+The nurse observation figures are fictional in-game display values; these meshes are mission props, not real patient-monitoring devices.
 
-## Out-of-date references
+## Imported asset pipeline status
 
-Older inventory notes referred to a `medical_city_3d.html` file, a Unity C# project and a separate `cases_data.json`. Those items were not present in the repository root or the inspected tracked folders during this review. The active browser entry point is `index.html`. No Unity migration is part of this project.
+- Three.js runtime: r128 from CDN.
+- GLB/GLTF model library: **not present in the inspected repository**.
+- GLTFLoader / DRACO / KTX2 / Meshopt pipeline: not configured in the tracked code.
+- Instanced rendering: no existing `InstancedMesh` use was found in the original application.
+- Human characters: procedural stylized geometry; no realistic face/rigged character asset library currently tracked.
+- MRI, CT, ECG and blood-pressure equipment: some learning UI and monitor-like props exist, but no verified detailed GLB equipment set is present.
+- Vehicle gameplay: ambulance/auto props exist; no enter/exit driving controller is implemented.
+- City expansion: metro-station environment and animated crowd system are not implemented.
+
+Do not describe the current procedural props as photorealistic or medically accurate imported models.
