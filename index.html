@@ -1020,6 +1020,11 @@
           <div class="map-tab-btn" id="tab-map-1">First Floor (Male & Female Wards, Nursing Station)</div>
         </div>
         <div id="campus-map-grid"></div>
+        <div class="dept-card" style="margin-top:12px;">
+          <strong style="color:#38bdf8;">Delhi World Boundary</strong>
+          <p style="font-size:12px;color:#cbd5e1;margin:6px 0;">Playable city limits are kept inside the Delhi boundary. District sectors: North, North West, West, South West, New Delhi, Central, North East, Shahdara, East, South East and South.</p>
+          <p style="font-size:11px;color:#94a3b8;margin:0;">The campus map above remains the active navigable area. District-wide roads, metro stops and neighbourhoods are planned expansion zones.</p>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn-icon" id="btn-close-map-footer">Return to Simulation</button>
@@ -1744,7 +1749,8 @@
       selectedLevel: 0,
       doctorCompletedPatientIds: [],
       nurseObservations: 0,
-      nurseCleanedSurfaces: 0
+      nurseCleanedSurfaces: 0,
+      ambulanceMission: { active: false, checkpoint: 0, completed: false }
     };
 
     // --- AUDIO ENGINE ---
@@ -2656,6 +2662,12 @@
       beacon.position.set(0, 3.15, 1.8);
       amb.add(beacon);
       worldGroup.add(amb);
+      window.medicalCityAmbulance = amb;
+      const routeMarkers = [[0,75],[-12,102],[28,32]].map(([x,z]) => {
+        const marker = new THREE.Mesh(new THREE.TorusGeometry(3.2,0.35,8,24),new THREE.MeshBasicMaterial({color:0x22c55e}));
+        marker.rotation.x = -Math.PI/2; marker.position.set(x,0.35,z); marker.visible = false; worldGroup.add(marker); return marker;
+      });
+      window.medicalCityAmbulanceMarkers = routeMarkers;
       addBoxCollider(26, 30, 28.5, 35.5);
 
       // 8. Delhi Green & Yellow CNG Auto-Rickshaw outside Main Gate
@@ -2683,6 +2695,9 @@
       addBoxCollider(-30.2, -19.8, 34.2, 41.8);
     }
     buildDelhiHospitalDetails();
+
+    const ambulanceDrive = { active:false, checkpoint:0, completed:false };
+    window.medicalCityAmbulanceDrive = ambulanceDrive;
 
     // --- 3D PLAYER AVATAR ---
     const playerGroup = new THREE.Group();
@@ -3707,6 +3722,20 @@
         openPatientExam(state.activeTarget.data);
       } else if (state.activeTarget.type === 'nurse-task') {
         if (window.MedicalCityTasks) window.MedicalCityTasks.interact(state.activeTarget.data);
+      } else if (state.activeTarget.type === 'ambulance') {
+        if (!ambulanceDrive.active) {
+          ambulanceDrive.active = true;
+          ambulanceDrive.checkpoint = 0;
+          ambulanceDrive.completed = false;
+          playerGroup.visible = false;
+          cameraState.distance = 12;
+          showNotification('Ambulance mission started. Follow the green route markers. WASD / joystick to drive, E to exit.');
+        } else {
+          ambulanceDrive.active = false;
+          playerGroup.visible = true;
+          playerGroup.position.set(30, 0, 37);
+          showNotification('Exited ambulance.');
+        }
       } else if (state.activeTarget.type === 'elevator') {
         const nextF = (state.currentFloor === 0 ? 1 : 0);
         useHospitalElevator(nextF);
@@ -3795,6 +3824,34 @@
 
       const inputLen = Math.hypot(moveX, moveZ);
       const isMoving = inputLen > 0.1;
+      const ambulanceDrive = window.medicalCityAmbulanceDrive;
+      if (ambulanceDrive && ambulanceDrive.active && window.medicalCityAmbulance) {
+        const vehicle = window.medicalCityAmbulance;
+        const steer = (keys.a ? 1 : 0) - (keys.d ? 1 : 0);
+        const throttle = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
+        if (Math.abs(throttle) > 0.01) {
+          vehicle.rotation.y += steer * dt * 1.35 * (throttle >= 0 ? 1 : -1);
+          const driveSpeed = (keys.shift ? 19 : 12) * throttle;
+          const nx = vehicle.position.x + Math.sin(vehicle.rotation.y) * driveSpeed * dt;
+          const nz = vehicle.position.z + Math.cos(vehicle.rotation.y) * driveSpeed * dt;
+          if (Math.abs(nx) < 132 && Math.abs(nz) < 132) vehicle.position.set(nx, 0, nz);
+        }
+        const route = [[0,75],[-12,102],[28,32]];
+        const target = route[ambulanceDrive.checkpoint];
+        if (target && Math.hypot(vehicle.position.x-target[0],vehicle.position.z-target[1]) < 8) {
+          ambulanceDrive.checkpoint += 1;
+          if (ambulanceDrive.checkpoint >= route.length) {
+            ambulanceDrive.active = false;
+            ambulanceDrive.completed = true;
+            playerGroup.visible = true;
+            playerGroup.position.set(31,0,38);
+            showNotification('Ambulance mission complete! All three route checkpoints reached.');
+          } else {
+            showNotification('Checkpoint ' + ambulanceDrive.checkpoint + ' / 3 reached. Continue to the next green marker.');
+          }
+        }
+        if (window.medicalCityAmbulanceMarkers) window.medicalCityAmbulanceMarkers.forEach((m,i)=>m.visible=i===ambulanceDrive.checkpoint);
+      }
 
       if (isMoving) {
         const normX = moveX / inputLen;
@@ -3851,8 +3908,10 @@
         }
       }
 
-      // Camera Chase
-      const camTarget = new THREE.Vector3(playerGroup.position.x, playerGroup.position.y + 1.8, playerGroup.position.z);
+      // Camera Chase follows the ambulance while the player is driving.
+      const driveState = window.medicalCityAmbulanceDrive;
+      const followTarget = driveState?.active && window.medicalCityAmbulance ? window.medicalCityAmbulance.position : playerGroup.position;
+      const camTarget = new THREE.Vector3(followTarget.x, followTarget.y + 2.2, followTarget.z);
       const camX = camTarget.x + Math.sin(cameraState.yaw) * Math.cos(cameraState.pitch) * cameraState.distance;
       const camY = camTarget.y + Math.sin(cameraState.pitch) * cameraState.distance;
       const camZ = camTarget.z + Math.cos(cameraState.yaw) * Math.cos(cameraState.pitch) * cameraState.distance;
@@ -3901,9 +3960,22 @@
       const promptMsg = document.getElementById('txt-prompt-msg');
       const zoneLabel = document.getElementById('txt-current-zone');
 
+      const ambulanceDrive = window.medicalCityAmbulanceDrive;
+      const ambulance = window.medicalCityAmbulance;
+      const nearAmbulance = ambulance && !ambulanceDrive?.active && Math.hypot(playerGroup.position.x-ambulance.position.x,playerGroup.position.z-ambulance.position.z)<6;
       const nurseTaskTarget = (state.selectedLevel === 2 && state.role === 'nurse' && window.MedicalCityTasks)
         ? window.MedicalCityTasks.findTarget(playerGroup.position, state.currentFloor) : null;
-      if (nurseTaskTarget) {
+      if (ambulanceDrive?.active && ambulance) {
+        state.activeTarget = null;
+        promptEl.style.display = 'flex';
+        promptMsg.innerText = 'Driving • WASD / joystick • E to exit • Checkpoint ' + Math.min(ambulanceDrive.checkpoint+1,3) + ' / 3';
+        zoneLabel.innerText = 'CATS 108 Ambulance';
+      } else if (nearAmbulance) {
+        state.activeTarget = { type: 'ambulance' };
+        promptEl.style.display = 'flex';
+        promptMsg.innerText = ambulanceDrive?.completed ? 'Drive ambulance again [E]' : 'Enter ambulance / Start route [E]';
+        zoneLabel.innerText = 'Emergency Ambulance Bay';
+      } else if (nurseTaskTarget) {
         state.activeTarget = { type: 'nurse-task', data: nurseTaskTarget };
         promptEl.style.display = 'flex';
         promptMsg.innerText = nurseTaskTarget.type === 'observation' ? 'Check observation station [E]' : 'Clean marked surface [E]';
