@@ -1,34 +1,42 @@
-# Medical City 3D - Hospital Simulation Game
+# Medical City 3D — Hospital Simulation Game
 
 ## Overview
-**Medical City** is an optimized realistic 3D open-world hospital simulation game set in a fictional Delhi/NCR Indian government medical college hospital campus.
 
-Playable directly in modern web browsers (Desktop Chrome/Edge, Android Chrome, Safari) and ready for zero-config **Vercel** deployment.
+Medical City is a browser-based hospital simulation built with HTML, CSS, JavaScript and Three.js r128. The existing scene, controls, collision checks, hospital navigation, patient case quiz, save flow and campus props are retained.
 
-## Features
-- **22 Interconnected Campus Areas**: Main Entrance, Security Post, Reception & OPD registration, OPD Building, Emergency & Trauma Department, Ambulance Bay, General Inpatient Wards, Nursing Station, ICU Simulation Suite, Operation Theatre, Pathology Lab, Radiology/MRI Suite, Medical College Block, Tiered Lecture Theaters, Central Medical Library, Cafeteria/Canteen, 24x7 Jan Aushadhi Pharmacy, Doctors' Hostel Quarters, Healing Garden, Vehicle Parking, Internal Campus Loop Roads, and Working Stretcher Elevators.
-- **Third-Person Player Controller**: Smooth chase camera with mouse orbit/zoom, WASD movement, sprint, jump, collision detection, and mobile on-screen virtual joystick with touch controls.
-- **20 Fictional Educational Patient Cases**: Complete with patient demographics, symptoms, physical examination, vitals, lab reports, multiple-choice quizzes, and comprehensive clinical rationales.
-- **Bilingual Support**: Instant toggle between English and Hindi for all signs, UI labels, department dialogs, and medical cases.
-- **Audio Synthesizer**: Web Audio API generated ambulance sirens, heart monitor beeps, elevator chimes, and interaction feedback with mute toggle.
-- **Day / Night Shift Lighting**: Ambient daylight Delhi sun and eerie night shift lighting providing the foundation for future hospital horror survival missions.
-- **Save & Load System**: Auto-persists player progress and case completions in browser `localStorage`.
+## Current playable flow
 
-## Vercel Deployment Instructions
-1. Install Vercel CLI (or connect GitHub repository to Vercel):
-   ```bash
-   npm i -g vercel
-   ```
-2. Deploy directly from the `vercel_dist` folder:
-   ```bash
-   cd vercel_dist
-   vercel --prod
-   ```
-3. Open the provided `.vercel.app` URL on your phone or desktop browser to play immediately!
+The home page uses four stages: Game Mode → Character Selection → Game Rules → Level Selection.
 
-## Local Offline Testing
-Run a quick local web server using Python or Node.js:
-```bash
-python3 -m http.server 8080
-```
-Open `http://localhost:8080` in your web browser.
+- **Single Player:** available.
+- **Multiplayer:** clearly marked unavailable until server sessions and synchronized player state are implemented.
+- **Doctor / Level 1:** diagnose five different fictional patient cases. Patient IDs count only once.
+- **Nurse / Level 2:** review five fictional observation stations and complete three marked surface-cleaning tasks.
+- **Patient / Free Roam:** explore the currently available campus without clinical objectives.
+- **Levels 3 and 4:** locked and not implemented.
+
+The current game-facing interface is English-only. Unused Hindi localization values may remain in source data.
+
+## Current world and graphics
+
+The existing campus includes hospital structures, rooms and corridors, roads, reception, patient-bed props, a two-floor elevator transition, an ambulance and an auto-rickshaw. The reception enhancement adds workstation displays, waiting chairs, wayfinding kiosk and directory panels. Nurse Level 2 adds five observation station props and three cleaning surfaces.
+
+The current visual style remains a mixture of procedural geometry, canvas textures and Three.js materials. It is not a photorealistic GTA-scale world.
+
+## Features still requiring development
+
+- Detailed GLB/GLTF people with realistic faces, rigs and animations.
+- Verified detailed MRI/CT/ECG/BP equipment models.
+- Metro station and animated city pedestrian crowds.
+- Car and motorcycle assets with enter/exit driving controls.
+- Multiplayer backend and player synchronization.
+- Levels 3 and 4.
+- Progressive model/room streaming and device-specific profiling.
+
+## Local development
+
+Run `npm start` or `python3 -m http.server 8080` from the repository root. Use a browser and open the static-server URL.
+
+## Quality assurance
+
+See `TESTING_REPORT.md`. Static syntax and markup checks were run for the latest role/level changes; full desktop and Android gameplay testing remains outstanding.
