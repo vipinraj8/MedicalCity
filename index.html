@@ -3774,6 +3774,14 @@
           if (window.medicalCityAmbulanceMarkers) window.medicalCityAmbulanceMarkers.forEach(m=>m.visible=false);
           window.dispatchEvent(new CustomEvent('medicalcity-ambulance-level-complete'));
         }
+      } else if (state.activeTarget.type === 'ambulance-exit') {
+        if (ambulanceDrive.active) {
+          ambulanceDrive.active = false;
+          playerGroup.visible = true;
+          const vehicle = window.medicalCityAmbulance;
+          if (vehicle) playerGroup.position.set(vehicle.position.x + 4, 0, vehicle.position.z);
+          showNotification('Exited ambulance. Re-enter to continue the route.');
+        }
       } else if (state.activeTarget.type === 'elevator') {
         const nextF = (state.currentFloor === 0 ? 1 : 0);
         useHospitalElevator(nextF);
@@ -4021,11 +4029,11 @@
       const nurseTaskTarget = (state.selectedLevel === 2 && state.role === 'nurse' && window.MedicalCityTasks)
         ? window.MedicalCityTasks.findTarget(playerGroup.position, state.currentFloor) : null;
       if (ambulanceDrive?.active && ambulance) {
-        if (!state.activeTarget || (state.activeTarget.type !== 'ambulance-pickup' && state.activeTarget.type !== 'ambulance-dropoff')) {
-          state.activeTarget = null;
+        if (!state.activeTarget || !['ambulance-pickup','ambulance-dropoff'].includes(state.activeTarget.type)) {
+          state.activeTarget = { type:'ambulance-exit' };
           promptEl.style.display = 'flex';
           promptMsg.innerText = ambulanceDrive.missionMode === 'patient-transfer'
-            ? (ambulanceDrive.phase === 'pickup' ? 'Driving to patient pickup • WASD / joystick • E to interact' : 'Patient on board • Drive to Emergency • E to exit')
+            ? (ambulanceDrive.phase === 'pickup' ? 'Driving to pickup • WASD / joystick • E to exit' : 'Patient onboard • Drive to Emergency • E to exit')
             : 'Driving • WASD / joystick • E to exit • Checkpoint ' + Math.min(ambulanceDrive.checkpoint+1,3) + ' / 3';
           zoneLabel.innerText = 'CATS 108 Ambulance';
         }
@@ -4120,10 +4128,10 @@
       const copy = document.getElementById('home-rules-copy');
       if (selectedHomeRole === 'doctor') {
         title.innerText = 'Doctor briefing • Level 1';
-        copy.innerHTML = '<p>Diagnose five different fictional patients. Each patient case has three questions: history, assessment and diagnosis.</p><p style="margin-top:8px;">A patient counts once only after the final question is answered correctly. The existing two-strike quiz rule remains active.</p>';
+        copy.innerHTML = '<p>Level 1: diagnose five different fictional patients using the three-question case flow.</p><p style="margin-top:8px;">Level 3: drive the ambulance to the roadside pickup, collect the simulated patient, and race to the hospital Emergency Bay to drop them off.</p>';
       } else if (selectedHomeRole === 'nurse') {
         title.innerText = 'Nurse briefing • Level 2';
-        copy.innerHTML = '<p>Visit five marked observation stations and review their fictional charts. Then complete three marked surface-cleaning tasks.</p><p style="margin-top:8px;">Use the E key or mobile Interact control near a highlighted station or surface. Confirm each task in its objective panel.</p>';
+        copy.innerHTML = '<p>Level 2: visit five marked observation stations and review their fictional charts. Then complete three marked surface-cleaning tasks.</p><p style="margin-top:8px;">Level 3: drive the ambulance to the roadside pickup, collect the simulated patient, and race to the hospital Emergency Bay to drop them off.</p>';
       } else {
         title.innerText = 'Patient briefing • Free roam';
         copy.innerHTML = '<p>Explore the currently available hospital campus as a patient character.</p><p style="margin-top:8px;">Clinical diagnosis and nursing checklists are not available in Patient mode.</p>';
@@ -4306,6 +4314,9 @@
         state.nurseObservations = 0;
         state.nurseCleanedSurfaces = 0;
         if (window.MedicalCityTasks) window.MedicalCityTasks.reset(state.selectedLevel === 2);
+        if (window.medicalCityAmbulanceDrive) Object.assign(window.medicalCityAmbulanceDrive, { active:false, checkpoint:0, completed:false, phase:'idle', missionMode:'patient-transfer', patientOnboard:false, startedAt:0, elapsedSeconds:0 });
+        if (window.medicalCityAmbulancePatient) window.medicalCityAmbulancePatient.visible = true;
+        if (window.medicalCityAmbulanceMarkers) window.medicalCityAmbulanceMarkers.forEach(m=>m.visible=false);
         playerGroup.position.set(0, 0, 26);
         state.currentFloor = 0;
         updateEconomyHUD();
