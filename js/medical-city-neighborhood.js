@@ -189,7 +189,7 @@
     tree.add(crown);
     g.add(tree);
   }
-  [[-72, 91, 1],[-37, 92, 0.85],[28, 92, 0.9],[72, 95, 1],[−116, 63, 0.9],[−116, 105, 0.8],[72, 118, 0.9]].forEach(p => addTree(p[0],p[1],p[2]));
+  [[-72, 91, 1],[-37, 92, 0.85],[28, 92, 0.9],[72, 95, 1],[-116, 63, 0.9],[-116, 105, 0.8],[72, 118, 0.9]].forEach(p => addTree(p[0],p[1],p[2]));
 
   function addStreetLamp(x, z) {
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 7.2, 8), mats2.frame);
@@ -330,7 +330,7 @@
   addLabel(g, 'AMBULANCE BAY • 108', 28, 5.1, 40.8, 9.0, 1.0, '#b91c1c', '#ffffff');
 
   // Low planted edging makes the edge of the playable neighborhood legible.
-  [[-119,49,0.8,10],[−119,119,0.8,10],[129,50,0.8,10],[129,118,0.8,10]].forEach(([x,z,w,d]) => {
+  [[-119,49,0.8,10],[-119,119,0.8,10],[129,50,0.8,10],[129,118,0.8,10]].forEach(([x,z,w,d]) => {
     addBox(g, w, 0.65, d, mats2.hedge, x, 0.32, z, 'Neighborhood boundary hedge');
   });
 
