@@ -829,7 +829,6 @@
         <button class="btn-icon" id="btn-toggle-tools" style="background:#0f172a; border-color:#38bdf8;">🧰 <span id="txt-btn-tools">Tools / Menu</span></button>
       </div>
       <div id="quick-buttons" style="display:none;">
-        <button class="btn-icon" id="btn-toggle-lang">🌐 <span id="txt-btn-lang">हिन्दी</span></button>
         <button class="btn-icon" id="btn-toggle-time">☀️ <span id="txt-btn-time">Night Mode</span></button>
         <button class="btn-icon" id="btn-open-map">🗺️ <span id="txt-btn-map">Campus Map</span></button>
         <button class="btn-icon" id="btn-open-cases">📋 <span id="txt-btn-cases">Medical Cases (20)</span></button>
@@ -858,7 +857,11 @@
   </div>
 
   <!-- Mobile Controls -->
-  <div id="mobile-controls">
+  <div id="level-objectives-hud" style="display:none;position:absolute;left:50%;bottom:190px;transform:translateX(-50%);z-index:22;max-width:92vw;padding:9px 14px;border:1px solid rgba(56,189,248,.65);border-radius:12px;background:rgba(15,23,42,.92);color:#e2e8f0;font-size:12px;text-align:center;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.4);">
+    <strong style="color:#38bdf8;">MISSION OBJECTIVES</strong>
+    <div id="level-objectives-text" style="margin-top:4px;">Select a level to begin.</div>
+  </div>
+    <div id="mobile-controls">
     <div id="joystick-zone">
       <div id="joystick-knob"></div>
     </div>
@@ -1028,7 +1031,7 @@
   <div class="modal-overlay" id="modal-role">
     <div class="modal-box" style="max-width: 560px;">
       <div class="modal-header">
-        <div class="modal-title" id="role-modal-title">🧑‍⚕️ Wardrobe & Role Selector (वार्डरोब एवं भूमिका)</div>
+        <div class="modal-title" id="role-modal-title">🧑‍⚕️ Wardrobe & Role Selector</div>
         <button class="modal-close" id="btn-close-role">&times;</button>
       </div>
       <div class="modal-body">
@@ -1036,28 +1039,28 @@
         <div style="display:flex; flex-direction:column; gap:10px;">
           <button class="case-item-btn" id="role-opt-doctor">
             <div>
-              <strong style="color:#38bdf8;">1. Resident Doctor (चिकित्सक / डॉक्टर)</strong>
+              <strong style="color:#38bdf8;">1. Resident Doctor</strong>
               <div style="font-size:11px; color:#94a3b8;">Attire: Crisp white doctor coat, stethoscope around neck, formal trousers. Duty: OPD clinics and ward rounds.</div>
             </div>
             <span>🩺</span>
           </button>
           <button class="case-item-btn" id="role-opt-nurse">
             <div>
-              <strong style="color:#34d399;">2. Staff Nurse (स्टाफ नर्स)</strong>
+              <strong style="color:#34d399;">2. Staff Nurse</strong>
               <div style="font-size:11px; color:#94a3b8;">Attire: Aqua medical scrub suit, nurse cap with cross, ID badge. Duty: Monitor vitals, administer IV fluids, triage.</div>
             </div>
             <span>💉</span>
           </button>
           <button class="case-item-btn" id="role-opt-explorer">
             <div>
-              <strong style="color:#fbbf24;">3. Medical Student / Explorer (मेडिकल छात्र)</strong>
+              <strong style="color:#fbbf24;">3. Medical Student / Explorer</strong>
               <div style="font-size:11px; color:#94a3b8;">Attire: Polo shirt, campus backpack strapped on shoulders, college lanyard. Duty: Explore and learn clinical cases.</div>
             </div>
             <span>🎓</span>
           </button>
           <button class="case-item-btn" id="role-opt-visitor">
             <div>
-              <strong style="color:#f472b6;">4. Hospital Visitor / Patient Relative (आगंतुक)</strong>
+              <strong style="color:#f472b6;">4. Hospital Visitor / Patient Relative</strong>
               <div style="font-size:11px; color:#94a3b8;">Attire: Casual Indian kurta, denim jeans. Duty: Navigate registration, visit pharmacy, meet patients.</div>
             </div>
             <span>🚶</span>
@@ -1118,71 +1121,119 @@
     </div>
   </div>
 
-  <!-- Home Start Screen Modal (Default on launch) -->
-  <div class="modal-overlay" id="home-start-screen" style="display:flex; z-index:9999; background:rgba(5, 10, 20, 0.94);">
-    <div class="modal-box" style="max-width: 660px; border-color:#38bdf8;">
-      <div class="modal-header" style="background:#1e293b; text-align:center;">
-        <div class="modal-title" style="justify-content:center; width:100%; font-size:20px;">
-          🏥 MEDICAL CITY 3D - DELHI NCR
-        </div>
+  <!-- Four-stage home flow: mode, character, rules, level -->
+  <div class="modal-overlay" id="home-start-screen" style="display:flex; z-index:9999; background:rgba(5,10,20,0.96);">
+    <div class="modal-box" style="max-width:720px; border-color:#38bdf8;">
+      <div class="modal-header" style="justify-content:center;">
+        <div class="modal-title" style="font-size:21px;">MEDICAL CITY 3D</div>
       </div>
-      <div class="modal-body" style="padding:16px 20px;">
-        <div style="text-align:center; margin-bottom:14px;">
-          <div style="font-size:13px; color:#94a3b8;">Govt. Institute of Medical Sciences & Hospital Simulation</div>
-          <div style="margin-top:6px; font-size:12px; background:rgba(56, 189, 248, 0.15); padding:6px 12px; border-radius:20px; display:inline-block; border:1px solid rgba(56, 189, 248, 0.4);">
-            📸 Follow Creator on Instagram: <a href="https://www.instagram.com/x_vipinraj_X/" target="_blank" style="color:#38bdf8; text-decoration:underline; font-weight:bold;">@x_vipinraj_X</a>
+      <div class="modal-body" style="padding:18px 20px;">
+        <div style="text-align:center;margin-bottom:14px;">
+          <div style="font-size:13px;color:#94a3b8;">Hospital Simulation • Single-player prototype</div>
+          <div id="home-step-indicator" style="margin-top:10px;color:#7dd3fc;font-weight:800;font-size:12px;letter-spacing:1px;">STEP 1 OF 4 • GAME MODE</div>
+          <div style="height:5px;background:#1e293b;border-radius:8px;margin-top:8px;overflow:hidden;"><div id="home-step-progress" style="height:5px;width:25%;background:#38bdf8;"></div></div>
+        </div>
+
+        <section id="home-stage-mode">
+          <h3 style="color:#f8fafc;margin-bottom:10px;">Choose Game Mode</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
+            <button class="dept-card" id="btn-mode-single" style="text-align:left;color:#f8fafc;cursor:pointer;margin:0;">
+              <div style="font-size:25px;">🧍</div><strong style="color:#38bdf8;">Single Player</strong>
+              <p style="font-size:12px;color:#94a3b8;margin-top:5px;">Play the available hospital missions on this device.</p>
+            </button>
+            <button class="dept-card" id="btn-mode-multi" style="text-align:left;color:#f8fafc;cursor:pointer;margin:0;">
+              <div style="font-size:25px;">👥</div><strong style="color:#fbbf24;">Multiplayer</strong>
+              <p style="font-size:12px;color:#94a3b8;margin-top:5px;">Not available yet. Online sessions and synchronized players still need a server.</p>
+            </button>
           </div>
-        </div>
+          <div id="home-mode-message" style="display:none;margin-top:12px;padding:10px;border-radius:8px;background:#422006;color:#fde68a;font-size:12px;"></div>
+        </section>
 
-        <div class="dept-card" style="margin-bottom:10px;">
-          <strong style="color:#fbbf24;">📖 Game Objective & 2-Strike Rule:</strong>
-          <ul style="margin:6px 0 0 16px; font-size:12px; color:#cbd5e1; line-height:1.5;">
-            <li>Walk into the hospital rooms, beds, and departments to examine patients.</li>
-            <li>Each consultation has <strong>3 sequential clinical questions</strong> (12th Bio / MBBS 1st Year level).</li>
-            <li><strong>2-Strike Rule</strong>: If you give <strong>2 wrong answers</strong>, the patient panics and runs away! (0 fees collected).</li>
-            <li><strong>WIN CONDITION</strong>: Successfully diagnose & treat <strong>10 Patients</strong> to win promotion and complete your shift!</li>
-          </ul>
-        </div>
+        <section id="home-stage-character" style="display:none;">
+          <h3 style="color:#f8fafc;margin-bottom:10px;">Choose Your Character</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;">
+            <button class="dept-card home-character" data-role="doctor" style="margin:0;text-align:left;color:#f8fafc;cursor:pointer;">
+              <div style="font-size:25px;">🩺</div><strong style="color:#38bdf8;">Doctor</strong>
+              <p style="font-size:12px;color:#94a3b8;margin-top:5px;">Clinical diagnosis and fictional patient cases.</p>
+            </button>
+            <button class="dept-card home-character" data-role="nurse" style="margin:0;text-align:left;color:#f8fafc;cursor:pointer;">
+              <div style="font-size:25px;">💉</div><strong style="color:#34d399;">Nurse</strong>
+              <p style="font-size:12px;color:#94a3b8;margin-top:5px;">Observation stations and marked cleaning tasks.</p>
+            </button>
+            <button class="dept-card home-character" data-role="patient" style="margin:0;text-align:left;color:#f8fafc;cursor:pointer;">
+              <div style="font-size:25px;">🧑</div><strong style="color:#fbbf24;">Patient</strong>
+              <p style="font-size:12px;color:#94a3b8;margin-top:5px;">Explore the hospital as a patient. Professional missions are not assigned.</p>
+            </button>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:14px;">
+            <button class="btn-icon" id="btn-character-back">Back</button>
+            <button class="btn-icon" id="btn-character-next" disabled style="background:#0284c7;">Continue</button>
+          </div>
+        </section>
 
-        <div class="dept-card" style="margin-bottom:10px;">
-          <strong style="color:#38bdf8;">🧑‍⚕️ Choose Your Shift Role & Duty:</strong>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-            <div id="home-role-doctor" style="border:2px solid #38bdf8; background:#0f172a; padding:10px; border-radius:8px; cursor:pointer; text-align:center;">
-              <strong style="color:#38bdf8;">🩺 Resident Doctor</strong>
-              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Attire: White coat & stethoscope. Duty: Clinical diagnosis & treatment. Win: Senior Consultant!</div>
+        <section id="home-stage-rules" style="display:none;">
+          <h3 style="color:#f8fafc;margin-bottom:10px;">Game Rules</h3>
+          <div class="dept-card" style="margin:0;">
+            <strong id="home-rules-title" style="color:#38bdf8;">Role briefing</strong>
+            <div id="home-rules-copy" style="font-size:13px;color:#cbd5e1;line-height:1.6;margin-top:8px;"></div>
+            <div style="margin-top:12px;padding:10px;background:#0f172a;border-radius:8px;font-size:12px;color:#94a3b8;">
+              <strong style="color:#fbbf24;">Controls</strong><br>
+              Desktop: WASD move • Shift run • Space jump • E interact • Mouse drag camera<br>
+              Android: left joystick move • on-screen buttons interact, run and jump
             </div>
-            <div id="home-role-nurse" style="border:1px solid #475569; background:#0f172a; padding:10px; border-radius:8px; cursor:pointer; text-align:center;">
-              <strong style="color:#34d399;">💉 Staff Nurse</strong>
-              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Attire: Aqua scrubs & cap. Duty: Vitals monitoring & IV lines. Win: Chief Nurse!</div>
+            <p style="font-size:11px;color:#94a3b8;margin-top:10px;">All patient profiles and observation values are fictional educational game data. This simulation is not medical advice or a clinical training system.</p>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:14px;">
+            <button class="btn-icon" id="btn-rules-back">Back</button>
+            <button class="btn-icon" id="btn-rules-next" style="background:#0284c7;">Choose Level</button>
+          </div>
+        </section>
+
+        <section id="home-stage-level" style="display:none;">
+          <h3 style="color:#f8fafc;margin-bottom:10px;">Select a Level</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px;">
+            <button class="dept-card" id="home-level-1" style="text-align:left;margin:0;color:#f8fafc;cursor:pointer;">
+              <strong style="color:#38bdf8;">LEVEL 1 • DOCTOR</strong>
+              <p style="font-size:12px;color:#cbd5e1;margin-top:6px;">Diagnose 5 distinct fictional patients using the three-stage case quiz.</p>
+              <span style="font-size:11px;color:#34d399;">Available for Doctor</span>
+            </button>
+            <button class="dept-card" id="home-level-2" style="text-align:left;margin:0;color:#f8fafc;cursor:pointer;">
+              <strong style="color:#34d399;">LEVEL 2 • NURSE</strong>
+              <p style="font-size:12px;color:#cbd5e1;margin-top:6px;">Check 5 observation stations and complete 3 marked surface-cleaning tasks.</p>
+              <span style="font-size:11px;color:#34d399;">Available for Nurse</span>
+            </button>
+            <button class="dept-card" id="home-level-free" style="text-align:left;margin:0;color:#f8fafc;cursor:pointer;">
+              <strong style="color:#fbbf24;">PATIENT • FREE ROAM</strong>
+              <p style="font-size:12px;color:#cbd5e1;margin-top:6px;">Explore the current campus without professional mission tasks.</p>
+              <span style="font-size:11px;color:#34d399;">Available for Patient</span>
+            </button>
+            <div class="dept-card" style="margin:0;opacity:0.55;">
+              <strong style="color:#94a3b8;">LEVEL 3 • LOCKED</strong>
+              <p style="font-size:12px;color:#94a3b8;margin-top:6px;">Not implemented yet.</p>
+            </div>
+            <div class="dept-card" style="margin:0;opacity:0.55;">
+              <strong style="color:#94a3b8;">LEVEL 4 • LOCKED</strong>
+              <p style="font-size:12px;color:#94a3b8;margin-top:6px;">Not implemented yet.</p>
             </div>
           </div>
-        </div>
-
-        <div class="dept-card" style="margin-bottom:10px;">
-          <strong style="color:#a7f3d0;">🎮 Controls:</strong>
-          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
-            <strong>PC:</strong> WASD to move • Shift to run • Space to jump • E to interact • Mouse to orbit camera<br>
-            <strong>Mobile:</strong> Left virtual joystick • Right buttons: E Interact, Run, Jump, Map
+          <div id="home-level-message" style="margin-top:10px;font-size:12px;color:#fbbf24;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;">
+            <button class="btn-icon" id="btn-level-back">Back</button>
+            <button class="btn-icon" id="btn-start-selected-level" disabled style="background:#0284c7;">Start Selected Level</button>
           </div>
-        </div>
+        </section>
 
-        <div style="font-size:10px; color:#64748b; text-align:center;">
-          ⚠️ <strong>Medical Educational Disclaimer:</strong> Designed for 12th Biology and MBBS 1st Year educational orientation. All cases are entirely fictional.
-        </div>
-
-        <button class="btn-icon" id="btn-start-game" style="width:100%; justify-content:center; font-size:15px; padding:12px; background:#0284c7; margin-top:12px; border-radius:8px; font-weight:bold;">
-          ▶️ START HOSPITAL DUTY / खेल शुरू करें
-        </button>
+        <div style="font-size:10px;color:#64748b;text-align:center;margin-top:14px;">English interface • Fictional educational simulation</div>
       </div>
     </div>
   </div>
 
-  <!-- Victory Win Modal (Triggered on 10 Patients Treated) -->
+  <!-- Level completion modal -->
   <div class="modal-overlay" id="modal-victory" style="display:none; z-index:9999; background:rgba(5, 10, 20, 0.95);">
     <div class="modal-box" style="max-width: 600px; border-color:#10b981; text-align:center;">
       <div class="modal-header" style="background:#065f46; justify-content:center;">
         <div class="modal-title" style="color:#ecfdf5; font-size:22px;">
-          🏆 SHIFT ACCOMPLISHED! / बधाई! मिशन पूरा हुआ!
+          🏆 LEVEL COMPLETE!
         </div>
       </div>
       <div class="modal-body" style="padding:22px;">
@@ -1216,9 +1267,9 @@
     const CLINICAL_CASES = [
   {
     "id": 1,
-    "title_en": "Heat Exhaustion & Dehydration (लू लगना एवं निर्जलीकरण)",
+    "title_en": "Heat Exhaustion & Dehydration",
     "title_hi": "गर्मी में लू लगना एवं निर्जलीकरण",
-    "dept": "Emergency / आपातकालीन",
+    "dept": "Emergency",
     "patient": {
       "name": "Ramesh Kumar",
       "age": 34,
@@ -1288,9 +1339,9 @@
   },
   {
     "id": 2,
-    "title_en": "Iron Deficiency Anemia (खून की कमी / एनीमिया)",
+    "title_en": "Iron Deficiency Anemia",
     "title_hi": "आयरन की कमी से एनीमिया (खून की कमी)",
-    "dept": "OPD - Medicine / सामान्य चिकित्सा",
+    "dept": "OPD - Medicine",
     "patient": {
       "name": "Pooja Sharma",
       "age": 20,
@@ -1360,9 +1411,9 @@
   },
   {
     "id": 3,
-    "title_en": "Dengue Fever & Platelet Surveillance (डेंगू बुखार)",
+    "title_en": "Dengue Fever & Platelet Surveillance",
     "title_hi": "डेंगू बुखार एवं प्लेटलेट्स निगरानी",
-    "dept": "Pathology & Inpatient / पैथोलॉजी एवं वार्ड",
+    "dept": "Pathology & Inpatient",
     "patient": {
       "name": "Deepak Joshi",
       "age": 28,
@@ -1432,9 +1483,9 @@
   },
   {
     "id": 4,
-    "title_en": "Acute Gastroenteritis & Food Poisoning (दस्त-उल्टी / फूड पॉइजनिंग)",
+    "title_en": "Acute Gastroenteritis & Food Poisoning",
     "title_hi": "तीव्र आंत्रशोथ एवं निर्जलीकरण (दस्त एवं उल्टी)",
-    "dept": "Emergency Trauma Bay / आपातकालीन",
+    "dept": "Emergency Trauma Bay",
     "patient": {
       "name": "Mohd. Arif",
       "age": 26,
@@ -1504,9 +1555,9 @@
   },
   {
     "id": 5,
-    "title_en": "Bronchial Asthma Exacerbation (अस्थमा का दौरा)",
+    "title_en": "Bronchial Asthma Exacerbation",
     "title_hi": "ब्रोन्कियल अस्थमा का दौरा (सांस फूलना)",
-    "dept": "Inpatient Ward / जनरल वार्ड",
+    "dept": "Inpatient Ward",
     "patient": {
       "name": "Simran Kaur",
       "age": 22,
@@ -1576,9 +1627,9 @@
   },
   {
     "id": 6,
-    "title_en": "Common Cold vs Antibiotic Stewardship (साधारण जुकाम)",
+    "title_en": "Common Cold vs Antibiotic Stewardship",
     "title_hi": "साधारण वायरल जुकाम एवं एंटीबायोटिक का सही उपयोग",
-    "dept": "OPD - ENT / ईएनटी",
+    "dept": "OPD - ENT",
     "patient": {
       "name": "Ananya Sen",
       "age": 24,
@@ -1671,7 +1722,7 @@
         mission1: "नाइट शिफ्ट सक्रिय है: अस्पताल के अंदर जाएं और मरीजों की जांच करें। 2 गलत जवाब पर मरीज भाग जाएगा!"
       }
     };
-    let currentLang = 'en';
+    const currentLang = 'en';
 
     // --- GAME STATE: NIGHT MODE DEFAULT ---
     const state = {
@@ -1688,7 +1739,12 @@
       activeTarget: null,
       activeZone: null,
       currentStrikes: 0,
-      solvedCases: []
+      solvedCases: [],
+      gameMode: 'single',
+      selectedLevel: 0,
+      doctorCompletedPatientIds: [],
+      nurseObservations: 0,
+      nurseCleanedSurfaces: 0
     };
 
     // --- AUDIO ENGINE ---
@@ -1991,10 +2047,9 @@
       ctx.fillStyle = textColor;
       ctx.font = 'bold 28px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(titleHi, 256, 52);
       ctx.fillStyle = '#fde047';
-      ctx.font = 'bold 22px sans-serif';
-      ctx.fillText(titleEn, 256, 94);
+      ctx.font = 'bold 25px sans-serif';
+      ctx.fillText(titleEn, 256, 76);
       const tex = new THREE.CanvasTexture(cv);
       return new THREE.Mesh(
         new THREE.BoxGeometry(w, h, 0.25),
@@ -2642,7 +2697,7 @@
       }
 
       const legGeo = new THREE.CylinderGeometry(0.13, 0.13, 1.2);
-      const legColor = (state.role === 'nurse' ? 0x38bdf8 : (state.role === 'doctor' ? 0x1e293b : (state.role === 'explorer' ? 0x78350f : 0x1e3a8a)));
+      const legColor = (state.role === 'nurse' ? 0x38bdf8 : (state.role === 'doctor' ? 0x1e293b : (state.role === 'patient' ? 0x475569 : (state.role === 'explorer' ? 0x78350f : 0x1e3a8a))));
       pLegLMesh = new THREE.Mesh(legGeo, new THREE.MeshLambertMaterial({ color: legColor }));
       pLegLMesh.position.set(-0.25, 0.6, 0);
       playerGroup.add(pLegLMesh);
@@ -2651,7 +2706,7 @@
       pLegRMesh.position.set(0.25, 0.6, 0);
       playerGroup.add(pLegRMesh);
 
-      const torsoColor = (state.role === 'doctor' ? 0xffffff : (state.role === 'nurse' ? 0x38bdf8 : (state.role === 'explorer' ? 0x0284c7 : 0xb91c1c)));
+      const torsoColor = (state.role === 'doctor' ? 0xffffff : (state.role === 'nurse' ? 0x38bdf8 : (state.role === 'patient' ? 0xdbeafe : (state.role === 'explorer' ? 0x0284c7 : 0xb91c1c))));
       pTorsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.25, 0.5), new THREE.MeshLambertMaterial({ color: torsoColor }));
       pTorsoMesh.position.y = 1.8;
       pTorsoMesh.castShadow = true;
@@ -2685,6 +2740,11 @@
         pNurseCap = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.18, 0.45), new THREE.MeshLambertMaterial({ color: 0xffffff }));
         pNurseCap.position.set(0, 3.02, 0);
         playerGroup.add(pNurseCap);
+      }
+      if (state.role === 'patient') {
+        const patientBand = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.55), new THREE.MeshLambertMaterial({ color: 0xfbbf24 }));
+        patientBand.position.set(0.47, 1.55, 0);
+        playerGroup.add(patientBand);
       }
       if (state.role === 'explorer') {
         pBackpack = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.8, 0.35), new THREE.MeshLambertMaterial({ color: 0x7c2d12 }));
@@ -2732,7 +2792,6 @@
       }
       if (k === 'e') handleInteractionTrigger();
       if (k === 'm') toggleModal('modal-map');
-      if (k === 'l') toggleLanguage();
       if (k === 'n') toggleNightShift();
     });
 
@@ -2848,14 +2907,36 @@
     }
 
     function updateEconomyHUD() {
-      document.getElementById('txt-rev-badge').innerText = `💰 ₹${state.revenue.toLocaleString()}`;
-      document.getElementById('txt-cured-badge').innerText = `🎯 Treated: ${state.patientsTreated} / 10`;
-      document.getElementById('txt-lost-badge').innerText = `🏃 Lost: ${state.patientsLost}`;
-      document.getElementById('txt-trust-badge').innerText = `⭐ Trust: ${state.trust}%`;
+      document.getElementById('txt-rev-badge').innerText = '💰 ₹' + state.revenue.toLocaleString();
+      let progressLabel = 'Treated: ' + state.patientsTreated + ' / 10';
+      if (state.selectedLevel === 1) progressLabel = 'Diagnosed: ' + state.doctorCompletedPatientIds.length + ' / 5';
+      else if (state.selectedLevel === 2) progressLabel = 'Nurse tasks: ' + (state.nurseObservations + state.nurseCleanedSurfaces) + ' / 8';
+      else if (state.role === 'patient') progressLabel = 'Patient free roam';
+      document.getElementById('txt-cured-badge').innerText = '🎯 ' + progressLabel;
+      document.getElementById('txt-lost-badge').innerText = '🏃 Lost: ' + state.patientsLost;
+      document.getElementById('txt-trust-badge').innerText = '⭐ Trust: ' + state.trust + '%';
+      updateLevelObjectivesHud();
+    }
+
+    function updateLevelObjectivesHud() {
+      const hud = document.getElementById('level-objectives-hud');
+      const text = document.getElementById('level-objectives-text');
+      if (!hud || !text || !state.selectedLevel && state.role !== 'patient') return;
+      hud.style.display = 'block';
+      if (state.selectedLevel === 1) {
+        text.innerText = 'Doctor • Diagnose 5 fictional patients • ' + state.doctorCompletedPatientIds.length + ' / 5 complete';
+      } else if (state.selectedLevel === 2) {
+        text.innerText = 'Nurse • Observation stations ' + state.nurseObservations + ' / 5 • Clean surfaces ' + state.nurseCleanedSurfaces + ' / 3';
+      } else {
+        text.innerText = 'Patient • Free roam campus exploration';
+      }
     }
 
     // --- 3-QUESTION CLINICAL CONSULTATION WITH 2-STRIKE RULE ---
     function openPatientExam(patient) {
+      if (state.role === 'patient') { showNotification('Patient mode is for campus exploration.'); return; }
+      if (state.selectedLevel === 2 && state.role === 'nurse') { showNotification('Use the marked observation stations and cleaning tasks for Nurse Level 2.'); return; }
+      if (state.selectedLevel === 1 && (patient.id > 5 || state.doctorCompletedPatientIds.includes(patient.id))) { showNotification('This Level 1 patient has already been counted. Find another patient.'); return; }
       audio.playClick();
       state.currentStrikes = 0;
       const c = CLINICAL_CASES.find(item => item.id === patient.caseId) || CLINICAL_CASES[0];
@@ -2872,7 +2953,7 @@
         <div class="strike-indicator">
           <span>Strikes:</span>
           <span style="font-size:14px;">[ ${icons} ]</span>
-          <span style="font-size:11px; color:#fca5a5;">(2 गलत जवाब पर मरीज भाग जाएगा!)</span>
+          <span style="font-size:11px; color:#fca5a5;">(Two incorrect answers end the consultation.)</span>
         </div>
       `;
     }
@@ -2932,7 +3013,7 @@
         optElement.className = 'quiz-option correct';
         fb.style.background = '#065f46';
         fb.style.color = '#ecfdf5';
-        fb.innerHTML = `<strong>✅ Sahi Sawal! Correct Clinical Inquiry!</strong><p>Patient reveals key clues. Moving to Question 2...</p>`;
+        fb.innerHTML = `<strong>✅ Correct clinical question.</strong><p>Patient reveals key clues. Moving to Question 2...</p>`;
         setTimeout(() => renderConsultationStep2(patient, c), 1300);
       } else {
         audio.playBuzzer();
@@ -2995,7 +3076,7 @@
         optElement.className = 'quiz-option correct';
         fb.style.background = '#065f46';
         fb.style.color = '#ecfdf5';
-        fb.innerHTML = `<strong>✅ Sahi Test! Correct Assessment!</strong><p>${c.lab}</p><p>Advancing to Final Question 3...</p>`;
+        fb.innerHTML = `<strong>✅ Correct assessment.</strong><p>${c.lab}</p><p>Advancing to Final Question 3...</p>`;
         setTimeout(() => renderConsultationStep3(patient, c), 1600);
       } else {
         audio.playBuzzer();
@@ -3055,7 +3136,13 @@
         optElement.className = 'quiz-option correct';
         const fee = (c.dept.includes('Emergency') ? 1200 : 500);
         state.revenue += fee;
-        state.patientsTreated += 1;
+        if (state.selectedLevel === 1 && state.role === 'doctor') {
+          if (!state.doctorCompletedPatientIds.includes(patient.id)) state.doctorCompletedPatientIds.push(patient.id);
+          state.patientsTreated = state.doctorCompletedPatientIds.length;
+        } else {
+          state.patientsTreated += 1;
+        }
+        updateEconomyHUD();
         checkWinCondition();
         state.trust = Math.min(100, state.trust + 5);
         updateEconomyHUD();
@@ -3063,8 +3150,8 @@
         outcome.style.background = '#065f46';
         outcome.style.color = '#ecfdf5';
         outcome.innerHTML = `
-          <strong>🎉 SUCCESSFUL CURE! (सफल इलाज)</strong>
-          <p style="margin:4px 0;">Patient says: <em>"Thank you Doctor Sahab! Aapka bahut-bahut shukriya!"</em></p>
+          <strong>🎉 SUCCESSFUL CASE COMPLETION</strong>
+          <p style="margin:4px 0;">Patient says: <em>"Thank you for explaining the case."</em></p>
           <div style="font-weight:bold; color:#a7f3d0; margin-top:6px;">💰 Paid ₹${fee} Consultation Fees deposited into Hospital Revenue!</div>
           <p style="margin-top:6px; font-size:12px;"><strong>Teaching Point:</strong> ${currentLang === 'hi' ? c.q3.explanation_hi : c.q3.explanation_en}</p>
         `;
@@ -3099,8 +3186,8 @@
       containerElement.style.background = '#881337';
       containerElement.style.color = '#ffe4e6';
       containerElement.innerHTML = `
-        <strong>🚨 2 GALAT JAWAB! PATIENT FLED! (मरीज अस्पताल छोड़कर भाग गया!)</strong>
-        <p style="margin:6px 0;">Patient yells: <em>"Aap bilkul galat ilaj kar rahe hain! Meri jaan khatre me pad jayegi! Main dusre hospital ja raha hoon!"</em></p>
+        <strong>🚨 TWO INCORRECT ANSWERS • CONSULTATION ENDED</strong>
+        <p style="margin:6px 0;">Patient leaves the simulated consultation after two incorrect answers.</p>
         <div style="font-weight:bold; color:#fca5a5; margin-top:6px;">❌ ₹0 Fees collected. Hospital Trust dropped to ${state.trust}%.</div>
       `;
 
@@ -3531,8 +3618,9 @@
       const roleBadge = document.getElementById('txt-role-badge');
       if (newRole === 'doctor') roleBadge.innerText = (currentLang === 'hi' ? 'चिकित्सक (DOCTOR)' : 'DOCTOR');
       else if (newRole === 'nurse') roleBadge.innerText = (currentLang === 'hi' ? 'स्टाफ नर्स (NURSE)' : 'NURSE');
-      else if (newRole === 'explorer') roleBadge.innerText = (currentLang === 'hi' ? 'छात्र (STUDENT)' : 'STUDENT');
-      else roleBadge.innerText = (currentLang === 'hi' ? 'आगंतुक (VISITOR)' : 'VISITOR');
+      else if (newRole === 'patient') roleBadge.innerText = 'PATIENT';
+      else if (newRole === 'explorer') roleBadge.innerText = 'STUDENT';
+      else roleBadge.innerText = 'VISITOR';
 
       showNotification(currentLang === 'hi' ? `पोशाक एवं भूमिका बदली गई: ${roleBadge.innerText}` : `Attire & Role changed to: ${newRole.toUpperCase()}`);
     }
@@ -3572,20 +3660,7 @@
     });
 
     // --- LANGUAGE & NIGHT SHIFT TOGGLES ---
-    function toggleLanguage() {
-      audio.playClick();
-      currentLang = (currentLang === 'en' ? 'hi' : 'en');
-      const loc = LOCALES[currentLang];
-      document.getElementById('txt-hosp-name').innerText = loc.hospName;
-      document.getElementById('lbl-location').innerText = loc.zone;
-      document.getElementById('lbl-floor').innerText = loc.floor;
-      document.getElementById('lbl-mission-head').innerText = loc.missionHead;
-      document.getElementById('txt-btn-lang').innerText = (currentLang === 'en' ? 'हिन्दी' : 'English');
-      document.getElementById('txt-mission-desc').innerText = loc.mission1;
-      showNotification(currentLang === 'hi' ? 'भाषा बदलकर हिन्दी की गई।' : 'Language changed to English.');
-    }
-    document.getElementById('btn-toggle-lang').addEventListener('click', toggleLanguage);
-
+    // Player-facing interface is intentionally English-only.
     function toggleNightShift() {
       audio.playClick();
       state.isNight = !state.isNight;
@@ -3630,6 +3705,8 @@
 
       if (state.activeTarget.type === 'patient') {
         openPatientExam(state.activeTarget.data);
+      } else if (state.activeTarget.type === 'nurse-task') {
+        if (window.MedicalCityTasks) window.MedicalCityTasks.interact(state.activeTarget.data);
       } else if (state.activeTarget.type === 'elevator') {
         const nextF = (state.currentFloor === 0 ? 1 : 0);
         useHospitalElevator(nextF);
@@ -3809,7 +3886,9 @@
           p.mesh.position.z = p.z;
         }
         const d = Math.hypot(playerGroup.position.x - p.x, playerGroup.position.z - p.z);
-        if (d < nearestDist && !p.isRunningAway) {
+        const roleUsesPatients = state.role !== 'patient' && !(state.selectedLevel === 2 && state.role === 'nurse');
+        const eligiblePatient = state.selectedLevel !== 1 || (p.id <= 5 && !state.doctorCompletedPatientIds.includes(p.id));
+        if (roleUsesPatients && eligiblePatient && d < nearestDist && !p.isRunningAway) {
           nearestDist = d;
           nearestPatient = p;
         }
@@ -3822,10 +3901,17 @@
       const promptMsg = document.getElementById('txt-prompt-msg');
       const zoneLabel = document.getElementById('txt-current-zone');
 
-      if (nearestDist < 4.5 && nearestPatient) {
+      const nurseTaskTarget = (state.selectedLevel === 2 && state.role === 'nurse' && window.MedicalCityTasks)
+        ? window.MedicalCityTasks.findTarget(playerGroup.position, state.currentFloor) : null;
+      if (nurseTaskTarget) {
+        state.activeTarget = { type: 'nurse-task', data: nurseTaskTarget };
+        promptEl.style.display = 'flex';
+        promptMsg.innerText = nurseTaskTarget.type === 'observation' ? 'Check observation station [E]' : 'Clean marked surface [E]';
+        zoneLabel.innerText = nurseTaskTarget.item.name;
+      } else if (nearestDist < 4.5 && nearestPatient) {
         state.activeTarget = { type: 'patient', data: nearestPatient };
         promptEl.style.display = 'flex';
-        promptMsg.innerText = currentLang === 'hi' ? `मरीज ${nearestPatient.name} की जांच करें [E]` : `Examine Patient: ${nearestPatient.name} [E]`;
+        promptMsg.innerText = 'Examine Patient: ' + nearestPatient.name + ' [E]';
         zoneLabel.innerText = nearestPatient.locName;
       } else {
         const distElevator = Math.hypot(playerGroup.position.x, playerGroup.position.z - (-21));
@@ -3852,6 +3938,7 @@
         }
       }
 
+      if (window.MedicalCityTasks) window.MedicalCityTasks.animateMarkers(clock.elapsedTime);
       renderICUMonitor();
       drawMinimap();
       renderer.render(scene, camera);
@@ -3866,97 +3953,216 @@
     }, { passive: false });
 
     
-    // Home Screen Role Picker
+    // --- FOUR-STAGE HOME FLOW AND LEVEL STARTUP ---
     let selectedHomeRole = 'doctor';
-    const roleDocBtn = document.getElementById('home-role-doctor');
-    const roleNurBtn = document.getElementById('home-role-nurse');
+    let selectedHomeMode = 'single';
+    let selectedHomeLevel = 1;
+    let selectedCharacterReady = false;
 
-    if (roleDocBtn && roleNurBtn) {
-      roleDocBtn.addEventListener('click', () => {
-        selectedHomeRole = 'doctor';
-        roleDocBtn.style.borderColor = '#38bdf8';
-        roleNurBtn.style.borderColor = '#475569';
+    const homeStages = [
+      { id: 'home-stage-mode', label: 'STEP 1 OF 4 • GAME MODE', width: '25%' },
+      { id: 'home-stage-character', label: 'STEP 2 OF 4 • CHARACTER', width: '50%' },
+      { id: 'home-stage-rules', label: 'STEP 3 OF 4 • GAME RULES', width: '75%' },
+      { id: 'home-stage-level', label: 'STEP 4 OF 4 • LEVEL', width: '100%' }
+    ];
+
+    function showHomeStage(index) {
+      homeStages.forEach((stage, i) => {
+        document.getElementById(stage.id).style.display = i === index ? 'block' : 'none';
       });
-      roleNurBtn.addEventListener('click', () => {
-        selectedHomeRole = 'nurse';
-        roleNurBtn.style.borderColor = '#34d399';
-        roleDocBtn.style.borderColor = '#475569';
-      });
+      document.getElementById('home-step-indicator').innerText = homeStages[index].label;
+      document.getElementById('home-step-progress').style.width = homeStages[index].width;
     }
 
-    // Toggle Tools Bar
+    function updateHomeCharacterCards() {
+      document.querySelectorAll('.home-character').forEach(card => {
+        const chosen = card.dataset.role === selectedHomeRole;
+        card.style.borderColor = chosen ? '#38bdf8' : '#334155';
+        card.style.boxShadow = chosen ? '0 0 0 1px #38bdf8' : 'none';
+      });
+      document.getElementById('btn-character-next').disabled = !selectedCharacterReady;
+      document.getElementById('btn-character-next').style.opacity = selectedCharacterReady ? '1' : '0.45';
+    }
+
+    function updateHomeRules() {
+      const title = document.getElementById('home-rules-title');
+      const copy = document.getElementById('home-rules-copy');
+      if (selectedHomeRole === 'doctor') {
+        title.innerText = 'Doctor briefing • Level 1';
+        copy.innerHTML = '<p>Diagnose five different fictional patients. Each patient case has three questions: history, assessment and diagnosis.</p><p style="margin-top:8px;">A patient counts once only after the final question is answered correctly. The existing two-strike quiz rule remains active.</p>';
+      } else if (selectedHomeRole === 'nurse') {
+        title.innerText = 'Nurse briefing • Level 2';
+        copy.innerHTML = '<p>Visit five marked observation stations and review their fictional charts. Then complete three marked surface-cleaning tasks.</p><p style="margin-top:8px;">Use the E key or mobile Interact control near a highlighted station or surface. Confirm each task in its objective panel.</p>';
+      } else {
+        title.innerText = 'Patient briefing • Free roam';
+        copy.innerHTML = '<p>Explore the currently available hospital campus as a patient character.</p><p style="margin-top:8px;">Clinical diagnosis and nursing checklists are not available in Patient mode.</p>';
+      }
+    }
+
+    function updateLevelAvailability() {
+      const level1 = document.getElementById('home-level-1');
+      const level2 = document.getElementById('home-level-2');
+      const free = document.getElementById('home-level-free');
+      const start = document.getElementById('btn-start-selected-level');
+      const message = document.getElementById('home-level-message');
+
+      level1.disabled = selectedHomeRole !== 'doctor';
+      level2.disabled = selectedHomeRole !== 'nurse';
+      free.disabled = selectedHomeRole !== 'patient';
+      [level1, level2, free].forEach(button => {
+        button.style.opacity = button.disabled ? '0.42' : '1';
+        button.style.cursor = button.disabled ? 'not-allowed' : 'pointer';
+        button.style.borderColor = 'transparent';
+      });
+
+      if (selectedHomeRole === 'doctor') {
+        selectedHomeLevel = 1;
+        message.innerText = 'Level 1 is available. Level 2 requires the Nurse character.';
+      } else if (selectedHomeRole === 'nurse') {
+        selectedHomeLevel = 2;
+        message.innerText = 'Level 2 is available. Level 1 requires the Doctor character.';
+      } else {
+        selectedHomeLevel = 0;
+        message.innerText = 'Patient mode opens campus free roam. Professional levels require Doctor or Nurse.';
+      }
+      const selected = selectedHomeLevel === 1 ? level1 : (selectedHomeLevel === 2 ? level2 : free);
+      selected.style.borderColor = '#38bdf8';
+      start.disabled = false;
+      start.style.opacity = '1';
+      start.innerText = selectedHomeLevel === 0 ? 'Start Patient Free Roam' : 'Start Selected Level';
+    }
+
+    function beginSelectedLevel() {
+      state.gameMode = selectedHomeMode;
+      state.selectedLevel = selectedHomeLevel;
+      state.doctorCompletedPatientIds = [];
+      state.nurseObservations = 0;
+      state.nurseCleanedSurfaces = 0;
+      state.patientsTreated = 0;
+      state.patientsLost = 0;
+      state.revenue = 3500;
+      state.trust = 95;
+      state.currentFloor = 0;
+      state.activeTarget = null;
+      playerGroup.position.set(0, 0, 26);
+      setRole(selectedHomeRole);
+      if (window.MedicalCityTasks) window.MedicalCityTasks.reset(selectedHomeLevel === 2);
+      document.getElementById('home-start-screen').style.display = 'none';
+      document.getElementById('level-objectives-hud').style.display = 'block';
+      updateEconomyHUD();
+      audio.playReceptionistChime(selectedHomeRole);
+      if (selectedHomeLevel === 1) {
+        showNotification('Doctor Level 1 started. Diagnose five different fictional patients.');
+      } else if (selectedHomeLevel === 2) {
+        showNotification('Nurse Level 2 started. Check five observation stations and clean three marked surfaces.');
+      } else {
+        showNotification('Patient free roam started. Explore the hospital campus.');
+      }
+    }
+
+    document.getElementById('btn-mode-single').addEventListener('click', () => {
+      selectedHomeMode = 'single';
+      document.getElementById('home-mode-message').style.display = 'none';
+      selectedCharacterReady = false;
+      showHomeStage(1);
+      updateHomeCharacterCards();
+    });
+    document.getElementById('btn-mode-multi').addEventListener('click', () => {
+      const note = document.getElementById('home-mode-message');
+      note.style.display = 'block';
+      note.innerText = 'Multiplayer is not connected yet. A server, player sessions and state synchronization are required. Single Player is available now.';
+    });
+
+    document.querySelectorAll('.home-character').forEach(card => {
+      card.addEventListener('click', () => {
+        selectedHomeRole = card.dataset.role;
+        selectedCharacterReady = true;
+        updateHomeCharacterCards();
+      });
+    });
+    document.getElementById('btn-character-back').addEventListener('click', () => showHomeStage(0));
+    document.getElementById('btn-character-next').addEventListener('click', () => {
+      if (!selectedCharacterReady) return;
+      updateHomeRules();
+      showHomeStage(2);
+    });
+    document.getElementById('btn-rules-back').addEventListener('click', () => showHomeStage(1));
+    document.getElementById('btn-rules-next').addEventListener('click', () => {
+      updateLevelAvailability();
+      showHomeStage(3);
+    });
+    document.getElementById('btn-level-back').addEventListener('click', () => showHomeStage(2));
+
+    function selectHomeLevel(level) {
+      selectedHomeLevel = level;
+      updateLevelAvailability();
+      const selected = level === 1 ? document.getElementById('home-level-1') : (level === 2 ? document.getElementById('home-level-2') : document.getElementById('home-level-free'));
+      if (!selected.disabled) selected.style.borderColor = '#38bdf8';
+    }
+    document.getElementById('home-level-1').addEventListener('click', () => { if (selectedHomeRole === 'doctor') selectHomeLevel(1); });
+    document.getElementById('home-level-2').addEventListener('click', () => { if (selectedHomeRole === 'nurse') selectHomeLevel(2); });
+    document.getElementById('home-level-free').addEventListener('click', () => { if (selectedHomeRole === 'patient') selectHomeLevel(0); });
+    document.getElementById('btn-start-selected-level').addEventListener('click', beginSelectedLevel);
+
+    // Toggle Tools Bar remains available for existing controls.
     const btnToggleTools = document.getElementById('btn-toggle-tools');
     if (btnToggleTools) {
       btnToggleTools.addEventListener('click', () => {
         const qb = document.getElementById('quick-buttons');
-        if (qb) {
-          qb.style.display = (qb.style.display === 'none' ? 'flex' : 'none');
-        }
+        if (qb) qb.style.display = (qb.style.display === 'none' ? 'flex' : 'none');
       });
     }
 
-    // Start Game from Home Screen
-    const btnStartGame = document.getElementById('btn-start-game');
-    if (btnStartGame) {
-      btnStartGame.addEventListener('click', () => {
-        const hs = document.getElementById('home-start-screen');
-        if (hs) hs.style.display = 'none';
-        // Spawn player right inside the main hospital entrance facing Reception & Wards!
-        playerGroup.position.set(0, 0, 26);
-        setRole(selectedHomeRole);
-        audio.playReceptionistChime(selectedHomeRole);
-
-        // Receptionist Work Allocation Prompt
-        if (selectedHomeRole === 'doctor') {
-          showNotification(currentLang === 'hi' 
-            ? "रिसेप्शनिस्ट: नमस्ते डॉक्टर साहब! 10 मरीज बेड और ओपीडी में प्रतीक्षारत हैं। कृपया 10 मरीजों का सफल इलाज करें!"
-            : "Receptionist: Namaste Doctor! 10 patients are waiting across OPD and Wards. Treat 10 patients to earn your Senior Consultant promotion!");
-        } else {
-          showNotification(currentLang === 'hi'
-            ? "रिसेप्शनिस्ट: नमस्ते सिस्टर! जनरल वार्ड बेड और इमरजेंसी में मरीजों का वाइटल्स चेक और ड्रिप मॉनिटरिंग करें!"
-            : "Receptionist: Namaste Staff Nurse! Patients on Ward beds and Emergency need vitals and IV fluid checks. Care for 10 patients!");
-        }
-      });
-    }
+    window.addEventListener('medicalcity-task-progress', event => {
+      state.nurseObservations = event.detail.observations;
+      state.nurseCleanedSurfaces = event.detail.cleaning;
+      updateLevelObjectivesHud();
+    });
 
     // Victory Win Condition Check
+    function showLevelVictory(title, description, primaryLabel, primaryValue) {
+      audio.playReceptionistChime();
+      const modal = document.getElementById('modal-victory');
+      modal.style.display = 'flex';
+      document.getElementById('victory-role-title').innerText = title;
+      document.getElementById('victory-role-desc').innerHTML = description;
+      document.getElementById('victory-revenue-val').innerText = '₹' + state.revenue.toLocaleString();
+      document.getElementById('victory-trust-val').innerText = state.trust + '%';
+      const labels = modal.querySelectorAll('.dept-stat-label');
+      const values = modal.querySelectorAll('.dept-stat-val');
+      if (labels[0]) labels[0].innerText = primaryLabel;
+      if (values[0]) values[0].innerText = primaryValue;
+    }
+
     function checkWinCondition() {
-      if (state.patientsTreated >= 10) {
-        audio.playReceptionistChime();
-        const modalVic = document.getElementById('modal-victory');
-        if (modalVic) {
-          modalVic.style.display = 'flex';
-          document.getElementById('victory-revenue-val').innerText = `₹${state.revenue.toLocaleString()}`;
-          document.getElementById('victory-trust-val').innerText = `${state.trust}%`;
-
-          const titleEl = document.getElementById('victory-role-title');
-          const descEl = document.getElementById('victory-role-desc');
-
-          if (state.role === 'doctor') {
-            titleEl.innerText = currentLang === 'hi' ? "बधाई डॉक्टर साहब! (Promoted to Senior Consultant)" : "Congratulations Doctor! (Promoted to Senior Consultant)";
-            descEl.innerHTML = currentLang === 'hi'
-              ? "आपने मेडिकल सिटी अस्पताल में 10 मरीजों का सफल निदान एवं उपचार पूरा किया है! आपके क्लिनिकल समर्पण को देखते हुए मेडिकल सुपरिंटेंडेंट ने आपको <strong>सीनियर कंसल्टेंट फिजिशियन</strong> के पद पर पदोन्नत किया है!"
-              : "You have successfully diagnosed and treated 10 patients across Medical City! Due to your clinical excellence, the Medical Superintendent has officially promoted you to <strong>Senior Consultant Physician</strong>!";
-          } else {
-            titleEl.innerText = currentLang === 'hi' ? "बधाई स्टाफ नर्स सिस्टर! (Promoted to Chief Nursing Superintendent)" : "Congratulations Staff Nurse! (Promoted to Chief Nursing Superintendent)";
-            descEl.innerHTML = currentLang === 'hi'
-              ? "आपने 10 भर्ती मरीजों की वाइटल्स जांच, आईवी ड्रिप और उत्कृष्ट नर्सिंग देखभाल की है! अस्पताल प्रबंधन ने आपको <strong>चीफ नर्सिंग सुपरिंटेंडेंट</strong> के पद पर पदोन्नत किया है!"
-              : "You have lovingly monitored vitals, administered IV fluids, and cared for 10 patients! You have been promoted to <strong>Chief Nursing Superintendent</strong> of Medical City Hospital!";
-          }
-        }
+      if (state.selectedLevel === 1 && state.role === 'doctor' && state.doctorCompletedPatientIds.length >= 5) {
+        showLevelVictory('Doctor Level 1 Complete', 'You diagnosed five different fictional patient cases. Level 1 is complete.', 'Patients diagnosed', '5 / 5');
       }
     }
 
+    window.addEventListener('medicalcity-level-complete', () => {
+      if (state.selectedLevel === 2 && state.role === 'nurse') {
+        showLevelVictory('Nurse Level 2 Complete', 'You checked all five observation stations and recorded all three marked surface-cleaning tasks.', 'Nurse objectives', '8 / 8');
+      }
+    });
+
     const btnVicRestart = document.getElementById('btn-victory-restart');
     if (btnVicRestart) {
+      btnVicRestart.innerText = 'Restart Level';
       btnVicRestart.addEventListener('click', () => {
+        document.getElementById('modal-victory').style.display = 'none';
+        state.doctorCompletedPatientIds = [];
         state.patientsTreated = 0;
         state.patientsLost = 0;
         state.revenue = 3500;
         state.trust = 95;
+        state.nurseObservations = 0;
+        state.nurseCleanedSurfaces = 0;
+        if (window.MedicalCityTasks) window.MedicalCityTasks.reset(state.selectedLevel === 2);
+        playerGroup.position.set(0, 0, 26);
+        state.currentFloor = 0;
         updateEconomyHUD();
-        document.getElementById('modal-victory').style.display = 'none';
-        showNotification("Next Shift Started! अगली शिफ्ट शुरू हुई।");
+        showNotification('Level restarted. Complete the mission objectives again.');
       });
     }
 
@@ -3976,6 +4182,7 @@
     animate();
   </script>
   <script src="js/medical-city-enhancements.js"></script>
+  <script src="js/medical-city-nurse-tasks.js"></script>
   <div id="campus-zones-cache" style="display:none;"><div id="btn-goto-stage3"></div><div id="btn-steth-listen"></div><div id="btn-view-scan-link"></div><div id="diag-outcome"></div><div id="dir-quiz-feedback"></div><div id="dir-quiz-opts"></div><div id="final-diag-opts"></div><div id="inq-feedback"></div><div id="inquiry-opts"></div><div id="inq-opt-1"></div><div id="inq-opt-2"></div><div id="inq-opt-3"></div><div id="quiz-opts"></div><div id="quiz-feedback"></div><div id="entrance"></div><div id="security"></div><div id="reception"></div><div id="opd"></div><div id="emergency"></div><div id="ambulance"></div><div id="wards"></div><div id="nursing"></div><div id="icu"></div><div id="ot"></div><div id="pathology"></div><div id="radiology"></div><div id="college"></div><div id="lecture"></div><div id="library"></div><div id="canteen"></div><div id="pharmacy"></div><div id="quarters"></div><div id="garden"></div><div id="parking"></div><div id="roads"></div><div id="elevator"></div></div>
 
   </body>
