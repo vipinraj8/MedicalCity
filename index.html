@@ -3862,6 +3862,9 @@
 
       const inputLen = Math.hypot(moveX, moveZ);
       const isMoving = inputLen > 0.1;
+      const promptEl = document.getElementById('interact-prompt');
+      const promptMsg = document.getElementById('txt-prompt-msg');
+      const zoneLabel = document.getElementById('txt-current-zone');
       const ambulanceDrive = window.medicalCityAmbulanceDrive;
       if (ambulanceDrive && ambulanceDrive.active && window.medicalCityAmbulance) {
         const vehicle = window.medicalCityAmbulance;
@@ -4013,10 +4016,6 @@
         }
       });
 
-      const promptEl = document.getElementById('interact-prompt');
-      const promptMsg = document.getElementById('txt-prompt-msg');
-      const zoneLabel = document.getElementById('txt-current-zone');
-
       const ambulance = window.medicalCityAmbulance;
       const nearAmbulance = ambulance && !ambulanceDrive?.active && Math.hypot(playerGroup.position.x-ambulance.position.x,playerGroup.position.z-ambulance.position.z)<6;
       const nurseTaskTarget = (state.selectedLevel === 2 && state.role === 'nurse' && window.MedicalCityTasks)
@@ -4131,7 +4130,7 @@
       }
     }
 
-    function updateLevelAvailability() {
+    function updateLevelAvailability(preserveSelection = false) {
       const level1 = document.getElementById('home-level-1');
       const level2 = document.getElementById('home-level-2');
       const level3 = document.getElementById('home-level-3');
@@ -4150,13 +4149,13 @@
       });
 
       if (selectedHomeRole === 'doctor') {
-        selectedHomeLevel = 1;
+        if (!preserveSelection) selectedHomeLevel = 1;
         message.innerText = 'Doctor: Level 1 diagnosis and Level 3 ambulance transfer are available.';
       } else if (selectedHomeRole === 'nurse') {
-        selectedHomeLevel = 2;
+        if (!preserveSelection) selectedHomeLevel = 2;
         message.innerText = 'Nurse: Level 2 observations and Level 3 ambulance transfer are available.';
       } else {
-        selectedHomeLevel = 0;
+        if (!preserveSelection) selectedHomeLevel = 0;
         message.innerText = 'Patient mode opens campus free roam. Choose Doctor or Nurse for professional missions.';
       }
       const selected = selectedHomeLevel === 1 ? level1 : (selectedHomeLevel === 2 ? level2 : (selectedHomeLevel === 3 ? level3 : free));
@@ -4234,7 +4233,7 @@
 
     function selectHomeLevel(level) {
       selectedHomeLevel = level;
-      updateLevelAvailability();
+      updateLevelAvailability(true);
       const selected = level === 1 ? document.getElementById('home-level-1') : (level === 2 ? document.getElementById('home-level-2') : (level === 3 ? document.getElementById('home-level-3') : document.getElementById('home-level-free')));
       if (!selected.disabled) selected.style.borderColor = '#38bdf8';
     }
