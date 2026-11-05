@@ -1267,9 +1267,9 @@
     const CLINICAL_CASES = [
   {
     "id": 1,
-    "title_en": "Heat Exhaustion & Dehydration (लू लगना एवं निर्जलीकरण)",
+    "title_en": "Heat Exhaustion & Dehydration",
     "title_hi": "गर्मी में लू लगना एवं निर्जलीकरण",
-    "dept": "Emergency / आपातकालीन",
+    "dept": "Emergency",
     "patient": {
       "name": "Ramesh Kumar",
       "age": 34,
@@ -1339,9 +1339,9 @@
   },
   {
     "id": 2,
-    "title_en": "Iron Deficiency Anemia (खून की कमी / एनीमिया)",
+    "title_en": "Iron Deficiency Anemia",
     "title_hi": "आयरन की कमी से एनीमिया (खून की कमी)",
-    "dept": "OPD - Medicine / सामान्य चिकित्सा",
+    "dept": "OPD - Medicine",
     "patient": {
       "name": "Pooja Sharma",
       "age": 20,
@@ -1411,9 +1411,9 @@
   },
   {
     "id": 3,
-    "title_en": "Dengue Fever & Platelet Surveillance (डेंगू बुखार)",
+    "title_en": "Dengue Fever & Platelet Surveillance",
     "title_hi": "डेंगू बुखार एवं प्लेटलेट्स निगरानी",
-    "dept": "Pathology & Inpatient / पैथोलॉजी एवं वार्ड",
+    "dept": "Pathology & Inpatient",
     "patient": {
       "name": "Deepak Joshi",
       "age": 28,
@@ -1483,9 +1483,9 @@
   },
   {
     "id": 4,
-    "title_en": "Acute Gastroenteritis & Food Poisoning (दस्त-उल्टी / फूड पॉइजनिंग)",
+    "title_en": "Acute Gastroenteritis & Food Poisoning",
     "title_hi": "तीव्र आंत्रशोथ एवं निर्जलीकरण (दस्त एवं उल्टी)",
-    "dept": "Emergency Trauma Bay / आपातकालीन",
+    "dept": "Emergency Trauma Bay",
     "patient": {
       "name": "Mohd. Arif",
       "age": 26,
@@ -1555,9 +1555,9 @@
   },
   {
     "id": 5,
-    "title_en": "Bronchial Asthma Exacerbation (अस्थमा का दौरा)",
+    "title_en": "Bronchial Asthma Exacerbation",
     "title_hi": "ब्रोन्कियल अस्थमा का दौरा (सांस फूलना)",
-    "dept": "Inpatient Ward / जनरल वार्ड",
+    "dept": "Inpatient Ward",
     "patient": {
       "name": "Simran Kaur",
       "age": 22,
@@ -1627,9 +1627,9 @@
   },
   {
     "id": 6,
-    "title_en": "Common Cold vs Antibiotic Stewardship (साधारण जुकाम)",
+    "title_en": "Common Cold vs Antibiotic Stewardship",
     "title_hi": "साधारण वायरल जुकाम एवं एंटीबायोटिक का सही उपयोग",
-    "dept": "OPD - ENT / ईएनटी",
+    "dept": "OPD - ENT",
     "patient": {
       "name": "Ananya Sen",
       "age": 24,
@@ -2047,10 +2047,9 @@
       ctx.fillStyle = textColor;
       ctx.font = 'bold 28px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(titleHi, 256, 52);
       ctx.fillStyle = '#fde047';
-      ctx.font = 'bold 22px sans-serif';
-      ctx.fillText(titleEn, 256, 94);
+      ctx.font = 'bold 25px sans-serif';
+      ctx.fillText(titleEn, 256, 76);
       const tex = new THREE.CanvasTexture(cv);
       return new THREE.Mesh(
         new THREE.BoxGeometry(w, h, 0.25),
@@ -2909,8 +2908,11 @@
 
     function updateEconomyHUD() {
       document.getElementById('txt-rev-badge').innerText = '💰 ₹' + state.revenue.toLocaleString();
-      const progress = state.selectedLevel === 1 ? state.doctorCompletedPatientIds.length + ' / 5' : state.patientsTreated + ' / 10';
-      document.getElementById('txt-cured-badge').innerText = (state.selectedLevel === 1 ? '🎯 Diagnosed: ' : '🎯 Treated: ') + progress;
+      let progressLabel = 'Treated: ' + state.patientsTreated + ' / 10';
+      if (state.selectedLevel === 1) progressLabel = 'Diagnosed: ' + state.doctorCompletedPatientIds.length + ' / 5';
+      else if (state.selectedLevel === 2) progressLabel = 'Nurse tasks: ' + (state.nurseObservations + state.nurseCleanedSurfaces) + ' / 8';
+      else if (state.role === 'patient') progressLabel = 'Patient free roam';
+      document.getElementById('txt-cured-badge').innerText = '🎯 ' + progressLabel;
       document.getElementById('txt-lost-badge').innerText = '🏃 Lost: ' + state.patientsLost;
       document.getElementById('txt-trust-badge').innerText = '⭐ Trust: ' + state.trust + '%';
       updateLevelObjectivesHud();
