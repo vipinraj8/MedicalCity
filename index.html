@@ -2951,7 +2951,7 @@
         <div class="strike-indicator">
           <span>Strikes:</span>
           <span style="font-size:14px;">[ ${icons} ]</span>
-          <span style="font-size:11px; color:#fca5a5;">(2 गलत जवाब पर मरीज भाग जाएगा!)</span>
+          <span style="font-size:11px; color:#fca5a5;">(Two incorrect answers end the consultation.)</span>
         </div>
       `;
     }
@@ -3011,7 +3011,7 @@
         optElement.className = 'quiz-option correct';
         fb.style.background = '#065f46';
         fb.style.color = '#ecfdf5';
-        fb.innerHTML = `<strong>✅ Sahi Sawal! Correct Clinical Inquiry!</strong><p>Patient reveals key clues. Moving to Question 2...</p>`;
+        fb.innerHTML = `<strong>✅ Correct clinical question.</strong><p>Patient reveals key clues. Moving to Question 2...</p>`;
         setTimeout(() => renderConsultationStep2(patient, c), 1300);
       } else {
         audio.playBuzzer();
@@ -3074,7 +3074,7 @@
         optElement.className = 'quiz-option correct';
         fb.style.background = '#065f46';
         fb.style.color = '#ecfdf5';
-        fb.innerHTML = `<strong>✅ Sahi Test! Correct Assessment!</strong><p>${c.lab}</p><p>Advancing to Final Question 3...</p>`;
+        fb.innerHTML = `<strong>✅ Correct assessment.</strong><p>${c.lab}</p><p>Advancing to Final Question 3...</p>`;
         setTimeout(() => renderConsultationStep3(patient, c), 1600);
       } else {
         audio.playBuzzer();
@@ -3148,8 +3148,8 @@
         outcome.style.background = '#065f46';
         outcome.style.color = '#ecfdf5';
         outcome.innerHTML = `
-          <strong>🎉 SUCCESSFUL CURE! (सफल इलाज)</strong>
-          <p style="margin:4px 0;">Patient says: <em>"Thank you Doctor Sahab! Aapka bahut-bahut shukriya!"</em></p>
+          <strong>🎉 SUCCESSFUL CASE COMPLETION</strong>
+          <p style="margin:4px 0;">Patient says: <em>"Thank you for explaining the case."</em></p>
           <div style="font-weight:bold; color:#a7f3d0; margin-top:6px;">💰 Paid ₹${fee} Consultation Fees deposited into Hospital Revenue!</div>
           <p style="margin-top:6px; font-size:12px;"><strong>Teaching Point:</strong> ${currentLang === 'hi' ? c.q3.explanation_hi : c.q3.explanation_en}</p>
         `;
@@ -3184,8 +3184,8 @@
       containerElement.style.background = '#881337';
       containerElement.style.color = '#ffe4e6';
       containerElement.innerHTML = `
-        <strong>🚨 2 GALAT JAWAB! PATIENT FLED! (मरीज अस्पताल छोड़कर भाग गया!)</strong>
-        <p style="margin:6px 0;">Patient yells: <em>"Aap bilkul galat ilaj kar rahe hain! Meri jaan khatre me pad jayegi! Main dusre hospital ja raha hoon!"</em></p>
+        <strong>🚨 TWO INCORRECT ANSWERS • CONSULTATION ENDED</strong>
+        <p style="margin:6px 0;">Patient leaves the simulated consultation after two incorrect answers.</p>
         <div style="font-weight:bold; color:#fca5a5; margin-top:6px;">❌ ₹0 Fees collected. Hospital Trust dropped to ${state.trust}%.</div>
       `;
 
