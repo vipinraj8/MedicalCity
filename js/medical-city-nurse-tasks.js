@@ -17,11 +17,11 @@
     green: new THREE.MeshStandardMaterial({color:0x10b981,emissive:0x065f46,emissiveIntensity:0.5})
   };
   const observations = [
-    {id:'OBS-01',name:'OPD Observation Station',x:-28,z:12,floor:0,bp:'118/76 mmHg',pulse:'78 bpm',rr:'16 / min',spo2:'98%',temp:'36.8 °C'},
-    {id:'OBS-02',name:'Emergency Observation Station',x:28,z:12,floor:0,bp:'124/82 mmHg',pulse:'92 bpm',rr:'18 / min',spo2:'97%',temp:'37.1 °C'},
+    {id:'OBS-01',name:'OPD Observation Station',x:-38,z:5,floor:0,bp:'118/76 mmHg',pulse:'78 bpm',rr:'16 / min',spo2:'98%',temp:'36.8 °C'},
+    {id:'OBS-02',name:'Emergency Observation Station',x:38,z:5,floor:0,bp:'124/82 mmHg',pulse:'92 bpm',rr:'18 / min',spo2:'97%',temp:'37.1 °C'},
     {id:'OBS-03',name:'Ground Corridor Observation Station',x:0,z:-10,floor:0,bp:'116/74 mmHg',pulse:'72 bpm',rr:'15 / min',spo2:'99%',temp:'36.7 °C'},
-    {id:'OBS-04',name:'Ward Observation Station A',x:-28,z:-10,floor:1,bp:'122/78 mmHg',pulse:'84 bpm',rr:'17 / min',spo2:'98%',temp:'36.9 °C'},
-    {id:'OBS-05',name:'Ward Observation Station B',x:-20,z:-10,floor:1,bp:'114/72 mmHg',pulse:'76 bpm',rr:'16 / min',spo2:'99%',temp:'36.6 °C'}
+    {id:'OBS-04',name:'Ward Observation Station A',x:-38,z:-4,floor:1,bp:'122/78 mmHg',pulse:'84 bpm',rr:'17 / min',spo2:'98%',temp:'36.9 °C'},
+    {id:'OBS-05',name:'Ward Observation Station B',x:-14,z:-4,floor:1,bp:'114/72 mmHg',pulse:'76 bpm',rr:'16 / min',spo2:'99%',temp:'36.6 °C'}
   ];
   const surfaces = [
     {id:'CLN-01',name:'OPD Examination Surface',x:-37,z:15,floor:0},
