@@ -1,34 +1,67 @@
-# Medical City 3D - Hospital Simulation Game
+# Medical City 3D — Hospital Simulation
 
-## Overview
-**Medical City** is an optimized realistic 3D open-world hospital simulation game set in a fictional Delhi/NCR Indian government medical college hospital campus.
+Medical City is a browser-based hospital simulation built with **HTML, CSS, JavaScript and Three.js r128**. It keeps the existing static-site architecture and browser gameplay systems; it has not been migrated to Unity or another engine.
 
-Playable directly in modern web browsers (Desktop Chrome/Edge, Android Chrome, Safari) and ready for zero-config **Vercel** deployment.
+## Current architecture
 
-## Features
-- **22 Interconnected Campus Areas**: Main Entrance, Security Post, Reception & OPD registration, OPD Building, Emergency & Trauma Department, Ambulance Bay, General Inpatient Wards, Nursing Station, ICU Simulation Suite, Operation Theatre, Pathology Lab, Radiology/MRI Suite, Medical College Block, Tiered Lecture Theaters, Central Medical Library, Cafeteria/Canteen, 24x7 Jan Aushadhi Pharmacy, Doctors' Hostel Quarters, Healing Garden, Vehicle Parking, Internal Campus Loop Roads, and Working Stretcher Elevators.
-- **Third-Person Player Controller**: Smooth chase camera with mouse orbit/zoom, WASD movement, sprint, jump, collision detection, and mobile on-screen virtual joystick with touch controls.
-- **20 Fictional Educational Patient Cases**: Complete with patient demographics, symptoms, physical examination, vitals, lab reports, multiple-choice quizzes, and comprehensive clinical rationales.
-- **Bilingual Support**: Instant toggle between English and Hindi for all signs, UI labels, department dialogs, and medical cases.
-- **Audio Synthesizer**: Web Audio API generated ambulance sirens, heart monitor beeps, elevator chimes, and interaction feedback with mute toggle.
-- **Day / Night Shift Lighting**: Ambient daylight Delhi sun and eerie night shift lighting providing the foundation for future hospital horror survival missions.
-- **Save & Load System**: Auto-persists player progress and case completions in browser `localStorage`.
+- `index.html` contains the existing UI, game state, Three.js scene, movement/camera controls, collisions, patient-case quiz and department interactions.
+- `js/medical-city-enhancements.js` adds reception-area 3D details and adaptive graphics-quality settings.
+- `js/medical-city-nurse-tasks.js` adds the Level 2 observation-station and marked-surface objectives.
+- `package.json` provides a lightweight static-server command. There is no build bundler or framework migration.
+- `vercel.json` configures static hosting headers.
 
-## Vercel Deployment Instructions
-1. Install Vercel CLI (or connect GitHub repository to Vercel):
-   ```bash
-   npm i -g vercel
-   ```
-2. Deploy directly from the `vercel_dist` folder:
-   ```bash
-   cd vercel_dist
-   vercel --prod
-   ```
-3. Open the provided `.vercel.app` URL on your phone or desktop browser to play immediately!
+## Current game flow
 
-## Local Offline Testing
-Run a quick local web server using Python or Node.js:
+The home screen has four stages:
+
+1. **Game mode:** Single Player is available. Multiplayer displays an availability notice because network sessions and synchronized player state have not been implemented.
+2. **Character:** Doctor, Nurse or Patient.
+3. **Game rules:** A role-specific briefing and desktop/mobile controls.
+4. **Level:** Select the role-appropriate mission.
+
+### Available play modes
+
+| Character / level | Objective | Status |
+|---|---|---|
+| Doctor — Level 1 | Diagnose five distinct fictional patients using the existing three-question case flow. A patient ID counts once. | Playable prototype |
+| Nurse — Level 2 | Review five fictional observation charts and record three marked surface-cleaning objectives. | Playable prototype |
+| Patient — Free roam | Explore the currently available campus as a patient character. | Playable prototype |
+| Level 3 | Locked. | Not implemented |
+| Level 4 | Locked. | Not implemented |
+| Multiplayer | Shows a clear not-yet-available message; no online session is started. | Not implemented |
+
+The English game interface has no language toggle. Some unused Hindi localization data remains in source files, but the player-facing language selector has been removed.
+
+## Run locally
+
+Install Node.js, then from the repository root run:
+
+```bash
+npm start
+```
+
+Open the local URL printed by the static server (normally `http://localhost:3000`). Alternatively:
+
 ```bash
 python3 -m http.server 8080
 ```
-Open `http://localhost:8080` in your web browser.
+
+Then open `http://localhost:8080`.
+
+Use an HTTP server rather than opening `index.html` directly as a file.
+
+## Deploy to Vercel
+
+Import this GitHub repository into Vercel and keep the project root as the Root Directory. This is a static site: no framework preset or build command is required. Keep the output directory at the static root.
+
+## Graphics and asset status
+
+The environment still uses many procedural Three.js meshes and canvas textures. The project does **not** yet contain a GLB/GLTF model library for realistic human faces, MRI equipment or detailed medical props. The reception and nurse objective props are interactive game geometry, not medically validated equipment models.
+
+The existing scene has hospital areas, campus roads/buildings, patient beds, an ambulance and a small auto-rickshaw. A detailed metro station, moving city crowds and enter/exit car or motorcycle driving systems are not implemented in this phase.
+
+## Performance and testing
+
+Graphics quality can be set to Auto, Low, Medium or High. Shadows remain configurable. Adaptive settings are intended to reduce rendering cost on constrained devices, but real device profiling is still required.
+
+See `docs/TESTING_REPORT.md` for the checks performed and the desktop/Android acceptance tests that remain.
